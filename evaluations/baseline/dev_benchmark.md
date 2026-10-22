@@ -1,14 +1,14 @@
 # Frozen Baseline Benchmark Report — DEV Split Only
-**Date:** 2026-10-22T08:21:07Z | **Seed:** 42 | **Split:** Development (N=20)
+**Date:** 2026-10-22T09:25:36Z | **Seed:** 42 | **Split:** Development (N=20)
 
 ## 1. DEV Set Empirical Results
 | Retrieval Mode | Hit@5 (Count) [95% CI] | MRR [95% CI] | Citation ID Validity | Quote Validation Fail Rate | Correct Abstention | False Refusal | Latency p50 / p95 | Error Rate |
 |---|---|---|---|---|---|---|---|---|
-| **BM25 (Baseline)** | 80.0% (12/15) [60.0%, 100.0%] | 0.6056 [0.4054, 0.8167] | 100.0% (75/75) | 0.0% (0/15) | 60.0% (3/5) | 13.3% (2/15) | 3.19 ms / 4.32 ms | 0.0% (0/20) |
-| **Dense Semantic** | 60.0% (9/15) [33.3%, 86.7%] | 0.4689 [0.2356, 0.6890] | 100.0% (75/75) | 13.3% (2/15) | 60.0% (3/5) | 0.0% (0/15) | 7.67 ms / 148.89 ms | 0.0% (0/20) |
-| **Hybrid RRF (Baseline)** | 73.3% (11/15) [46.7%, 93.3%] | 0.5889 [0.3610, 0.8167] | 100.0% (75/75) | 6.7% (1/15) | 60.0% (3/5) | 13.3% (2/15) | 9.75 ms / 12.27 ms | 0.0% (0/20) |
-| **Hybrid RRF (Abbr Expanded)** | 73.3% (11/15) [46.7%, 93.3%] | 0.6000 [0.3772, 0.8222] | 100.0% (75/75) | 6.7% (1/15) | 60.0% (3/5) | 13.3% (2/15) | 9.44 ms / 11.36 ms | 0.0% (0/20) |
-| **BM25 (Abbr Expanded)** | 80.0% (12/15) [60.0%, 100.0%] | 0.6000 [0.3833, 0.8167] | 100.0% (75/75) | 0.0% (0/15) | 60.0% (3/5) | 13.3% (2/15) | 3.19 ms / 4.35 ms | 0.0% (0/20) |
+| **BM25 (Baseline)** | 80.0% (12/15) [60.0%, 100.0%] | 0.6056 [0.4054, 0.8167] | 100.0% (75/75) | 0.0% (0/15) | 60.0% (3/5) | 13.3% (2/15) | 3.29 ms / 4.22 ms | 0.0% (0/20) |
+| **Dense Semantic** | 60.0% (9/15) [33.3%, 86.7%] | 0.4689 [0.2356, 0.6890] | 100.0% (75/75) | 13.3% (2/15) | 60.0% (3/5) | 0.0% (0/15) | 7.75 ms / 148.75 ms | 0.0% (0/20) |
+| **Hybrid RRF (Baseline)** | 73.3% (11/15) [46.7%, 93.3%] | 0.5889 [0.3610, 0.8167] | 100.0% (75/75) | 6.7% (1/15) | 60.0% (3/5) | 13.3% (2/15) | 10.91 ms / 13.45 ms | 0.0% (0/20) |
+| **Hybrid RRF (Abbr Expanded)** | 73.3% (11/15) [46.7%, 93.3%] | 0.6000 [0.3772, 0.8222] | 100.0% (75/75) | 6.7% (1/15) | 60.0% (3/5) | 13.3% (2/15) | 9.7 ms / 11.59 ms | 0.0% (0/20) |
+| **BM25 (Abbr Expanded)** | 80.0% (12/15) [60.0%, 100.0%] | 0.6000 [0.3833, 0.8167] | 100.0% (75/75) | 0.0% (0/15) | 60.0% (3/5) | 13.3% (2/15) | 3.43 ms / 4.35 ms | 0.0% (0/20) |
 
 ## 2. Configuration & Model Identifiers
 - **Embedding Model:** `all-MiniLM-L6-v2` (Dense 384-d normalized unit vectors)
@@ -27,7 +27,7 @@
 | `data/processed/embeddings.npy` | `01aab8bfdc742c2fae38cc1df911f5e37321b77d4223a4b5ebefba3290f2cc83` |
 | `data/glossary.json` | `ee868ad6792cc4f41b1ddf2d42d304b3e8f5f3544256700655b2dbac5b1fc44f` |
 | `data/eval_queries_40.json` | `89782c4c2bd27e8e3f1250c29bd4fd06c2a1c41a6b36672fa7f03a06e8d2a24f` |
-| `.env` | `7f1355da753852752432a819834743a5bfb127f85c07e1872eb77be4c87171d1` |
+| `.env` | `b006fa101a9c4db83636f197283111bccdc9356b224cf0ea49f6ce168b539ad7` |
 
 ## 4. Reliability Analysis & Known Weaknesses
 1. **Small Sample Size ($N=20$, $N_{\text{ans}}=15$, $N_{\text{unans}}=5$):**

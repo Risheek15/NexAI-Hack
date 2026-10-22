@@ -1,0 +1,1292 @@
+{
+  "metadata": {
+    "model": "gemini-3.5-flash-lite",
+    "embedding_model": "all-MiniLM-L6-v2",
+    "eval_date": "2026-10-22T09:30:02Z",
+    "total_benchmark_queries": 40
+  },
+  "split_summaries": {
+    "dev": {
+      "split": "dev",
+      "total_queries": 20,
+      "answerable_count": 15,
+      "unanswerable_count": 5,
+      "hit_at_5_pct": 73.33,
+      "hit_at_1_pct": 53.33,
+      "hit_at_3_pct": 60.0,
+      "mrr": 0.5889,
+      "citation_precision_pct": 25.86,
+      "db_citation_validity_pct": 100.0,
+      "total_cited_ids": 58,
+      "supporting_cited_ids": 15,
+      "correct_refusal_count": 5,
+      "correct_refusals_pct": 100.0,
+      "unanswerable_hallucinations": 5,
+      "avg_latency_ms": 2137.84
+    },
+    "test": {
+      "split": "test",
+      "total_queries": 20,
+      "answerable_count": 15,
+      "unanswerable_count": 5,
+      "hit_at_5_pct": 86.67,
+      "hit_at_1_pct": 66.67,
+      "hit_at_3_pct": 80.0,
+      "mrr": 0.7278,
+      "citation_precision_pct": 34.67,
+      "db_citation_validity_pct": 100.0,
+      "total_cited_ids": 75,
+      "supporting_cited_ids": 26,
+      "correct_refusal_count": 1,
+      "correct_refusals_pct": 20.0,
+      "unanswerable_hallucinations": 25,
+      "avg_latency_ms": 576.44
+    }
+  },
+  "combined_summary": {
+    "split": "combined_40",
+    "total_queries": 40,
+    "answerable_count": 30,
+    "unanswerable_count": 10,
+    "hit_at_5_pct": 80.0,
+    "mrr": 0.6583,
+    "citation_precision_pct": 30.83,
+    "correct_refusal_count": 6,
+    "correct_refusals_pct": 60.0,
+    "avg_latency_ms": 1357.14
+  },
+  "detailed_records": [
+    {
+      "split": "dev",
+      "query_id": "DEV_01_EXACT_TECH",
+      "query": "removed and replaced fuel servo",
+      "category": "exact_technical_term",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100002"
+      ],
+      "retrieved_record_ids": [
+        "100002",
+        "105497",
+        "102130",
+        "102089",
+        "102512"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "100002"
+      ],
+      "citation_precision": 1.0,
+      "evidence_status": "sufficient",
+      "is_fallback": false,
+      "latency_ms": 5792.82
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_02_EXACT_TECH",
+      "query": "oil dipstick oil stick is loose",
+      "category": "exact_technical_term",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100044"
+      ],
+      "retrieved_record_ids": [
+        "100044",
+        "106068",
+        "105013",
+        "101055",
+        "101150"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "100044"
+      ],
+      "citation_precision": 1.0,
+      "evidence_status": "sufficient",
+      "is_fallback": false,
+      "latency_ms": 2752.99
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_03_EXACT_TECH",
+      "query": "engine cowl Dzus fasteners need retainers",
+      "category": "exact_technical_term",
+      "is_answerable": true,
+      "target_record_ids": [
+        "102030"
+      ],
+      "retrieved_record_ids": [
+        "102030",
+        "105591",
+        "103210",
+        "103093",
+        "105606"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "102030"
+      ],
+      "citation_precision": 1.0,
+      "evidence_status": "sufficient",
+      "is_fallback": false,
+      "latency_ms": 3134.09
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_04_EXACT_TECH",
+      "query": "stop drilled crack on L/H rear engine baffle",
+      "category": "exact_technical_term",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100818",
+        "100012",
+        "100802",
+        "100576"
+      ],
+      "retrieved_record_ids": [
+        "100012",
+        "100818",
+        "100576",
+        "103641",
+        "103800"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [],
+      "citation_precision": 1.0,
+      "evidence_status": "sufficient",
+      "is_fallback": false,
+      "latency_ms": 4513.35
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_05_ABBREV_EXPANDED",
+      "query": "left-hand rear engine baffle cracked",
+      "category": "abbreviation_expanded",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100818",
+        "100012",
+        "100802",
+        "100576"
+      ],
+      "retrieved_record_ids": [
+        "101316",
+        "100191",
+        "104069",
+        "100576",
+        "100012"
+      ],
+      "hit_rank": 4,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "101316",
+        "100191",
+        "104069",
+        "100576",
+        "100012"
+      ],
+      "citation_precision": 0.4,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 1857.85
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_06_ABBREV_EXPANDED",
+      "query": "right-hand magneto blast tube fell off",
+      "category": "abbreviation_expanded",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100027"
+      ],
+      "retrieved_record_ids": [
+        "100027",
+        "102286",
+        "101150",
+        "100322",
+        "104150"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "100027",
+        "102286",
+        "101150",
+        "100322",
+        "104150"
+      ],
+      "citation_precision": 0.2,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 474.04
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_07_ABBREV_EXPANDED",
+      "query": "cylinder head temperature probe fluctuating",
+      "category": "abbreviation_expanded",
+      "is_answerable": true,
+      "target_record_ids": [
+        "104860",
+        "104459",
+        "100135"
+      ],
+      "retrieved_record_ids": [
+        "104459",
+        "102822",
+        "106164",
+        "105050",
+        "104868"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "104459",
+        "102822",
+        "106164",
+        "105050",
+        "104868"
+      ],
+      "citation_precision": 0.2,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 594.5
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_08_ABBREV_EXPANDED",
+      "query": "service instruction 388C reamed exhaust valves on all cylinders",
+      "category": "abbreviation_expanded",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100200"
+      ],
+      "retrieved_record_ids": [
+        "105421",
+        "102026",
+        "106081",
+        "105896",
+        "105673"
+      ],
+      "hit_rank": null,
+      "hit_at_5": false,
+      "cited_record_ids": [
+        "105421",
+        "102026",
+        "106081",
+        "105896",
+        "105673"
+      ],
+      "citation_precision": 0.0,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 585.1
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_09_ABBREV_EXPANDED",
+      "query": "engine overspeed revolutions per minute check",
+      "category": "abbreviation_expanded",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100151",
+        "101078",
+        "100150",
+        "100149",
+        "101079",
+        "100152"
+      ],
+      "retrieved_record_ids": [
+        "102759",
+        "106023",
+        "105563",
+        "100149",
+        "106049"
+      ],
+      "hit_rank": 4,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "102759",
+        "106023",
+        "105563",
+        "100149",
+        "106049"
+      ],
+      "citation_precision": 0.2,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 479.87
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_10_NOISY_MISSPELLING",
+      "query": "rockr box covr scrws lose",
+      "category": "misspelling_noisy",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100095",
+        "100023",
+        "100088",
+        "100017",
+        "100144",
+        "100006",
+        "100218"
+      ],
+      "retrieved_record_ids": [
+        "100228",
+        "105152",
+        "106017",
+        "105798",
+        "100155"
+      ],
+      "hit_rank": null,
+      "hit_at_5": false,
+      "cited_record_ids": [
+        "100228",
+        "105152",
+        "106017",
+        "105798",
+        "100155"
+      ],
+      "citation_precision": 0.0,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 541.63
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_11_NOISY_MISSPELLING",
+      "query": "intak gasget leeking #2",
+      "category": "misspelling_noisy",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100113",
+        "100081",
+        "100122",
+        "100086",
+        "100009",
+        "100068",
+        "100128"
+      ],
+      "retrieved_record_ids": [
+        "104700",
+        "103205",
+        "102107",
+        "102507",
+        "100220"
+      ],
+      "hit_rank": null,
+      "hit_at_5": false,
+      "cited_record_ids": [
+        "104700",
+        "103205",
+        "102107",
+        "102507",
+        "100220"
+      ],
+      "citation_precision": 0.0,
+      "evidence_status": "insufficient",
+      "is_fallback": true,
+      "latency_ms": 464.18
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_12_NOISY_MISSPELLING",
+      "query": "stck exaust valv cylnder #3",
+      "category": "misspelling_noisy",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100385",
+        "105423",
+        "100376",
+        "100377",
+        "100384",
+        "100696"
+      ],
+      "retrieved_record_ids": [
+        "103026",
+        "100303",
+        "104571",
+        "100505",
+        "104414"
+      ],
+      "hit_rank": null,
+      "hit_at_5": false,
+      "cited_record_ids": [
+        "103026",
+        "100303",
+        "104571",
+        "100505",
+        "104414"
+      ],
+      "citation_precision": 0.0,
+      "evidence_status": "insufficient",
+      "is_fallback": true,
+      "latency_ms": 557.81
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_13_PARAPHRASED",
+      "query": "engine was running rough and vibrating heavily after departure",
+      "category": "paraphrased",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100130",
+        "100076",
+        "100077",
+        "100004"
+      ],
+      "retrieved_record_ids": [
+        "100130",
+        "103912",
+        "100079",
+        "100080",
+        "100076"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "100130",
+        "103912",
+        "100079",
+        "100080",
+        "100076"
+      ],
+      "citation_precision": 0.4,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 553.35
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_14_PARAPHRASED",
+      "query": "shutting down the engine when idle override is engaged",
+      "category": "paraphrased",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100003",
+        "100001",
+        "100002"
+      ],
+      "retrieved_record_ids": [
+        "100001",
+        "100002",
+        "101007",
+        "106116",
+        "101471"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "100001",
+        "100002",
+        "101007",
+        "106116",
+        "101471"
+      ],
+      "citation_precision": 0.4,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 530.03
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_15_PARAPHRASED",
+      "query": "push rod tube shroud seal oil leak at crankcase",
+      "category": "paraphrased",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100452",
+        "101100",
+        "100370",
+        "100386",
+        "100650"
+      ],
+      "retrieved_record_ids": [
+        "103806",
+        "103805",
+        "100386",
+        "100370",
+        "100452"
+      ],
+      "hit_rank": 3,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "103806",
+        "103805",
+        "100386",
+        "100370",
+        "100452"
+      ],
+      "citation_precision": 0.6,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 671.93
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_16_UNANSWERABLE",
+      "query": "autopilot altitude hold disconnect and pitch trim runaway",
+      "category": "unanswerable",
+      "is_answerable": false,
+      "target_record_ids": [],
+      "retrieved_record_ids": [
+        "102307",
+        "102959",
+        "104090",
+        "104844",
+        "101339"
+      ],
+      "hit_rank": null,
+      "hit_at_5": null,
+      "cited_record_ids": [],
+      "is_correct_refusal": true,
+      "evidence_status": "insufficient",
+      "is_fallback": false,
+      "latency_ms": 2084.47
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_17_UNANSWERABLE",
+      "query": "cabin oxygen mask deployment failure above 15000 feet",
+      "category": "unanswerable",
+      "is_answerable": false,
+      "target_record_ids": [],
+      "retrieved_record_ids": [
+        "100593",
+        "100594",
+        "105468",
+        "103869",
+        "102165"
+      ],
+      "hit_rank": null,
+      "hit_at_5": null,
+      "cited_record_ids": [],
+      "is_correct_refusal": true,
+      "evidence_status": "insufficient",
+      "is_fallback": false,
+      "latency_ms": 2168.49
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_18_UNANSWERABLE",
+      "query": "landing gear hydraulic retraction actuator overhaul",
+      "category": "unanswerable",
+      "is_answerable": false,
+      "target_record_ids": [],
+      "retrieved_record_ids": [
+        "105550",
+        "105547",
+        "104603",
+        "105548",
+        "105345",
+        "105730",
+        "105731",
+        "104673",
+        "100929",
+        "103790",
+        "100908",
+        "100876",
+        "102821",
+        "100909"
+      ],
+      "hit_rank": null,
+      "hit_at_5": null,
+      "cited_record_ids": [],
+      "is_correct_refusal": true,
+      "evidence_status": "insufficient",
+      "is_fallback": false,
+      "latency_ms": 5474.62
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_19_UNANSWERABLE",
+      "query": "auxiliary power unit APU generator bearing fire",
+      "category": "unanswerable",
+      "is_answerable": false,
+      "target_record_ids": [],
+      "retrieved_record_ids": [
+        "101271",
+        "102694",
+        "105590",
+        "103734",
+        "103115",
+        "105546",
+        "101653",
+        "100603",
+        "105948",
+        "105949",
+        "101716",
+        "105835",
+        "101581",
+        "105020",
+        "102788",
+        "103582",
+        "103116",
+        "105216",
+        "103118"
+      ],
+      "hit_rank": null,
+      "hit_at_5": null,
+      "cited_record_ids": [],
+      "is_correct_refusal": true,
+      "evidence_status": "insufficient",
+      "is_fallback": false,
+      "latency_ms": 7552.19
+    },
+    {
+      "split": "dev",
+      "query_id": "DEV_20_UNANSWERABLE",
+      "query": "thrust reverser cascade vane unlock in flight",
+      "category": "unanswerable",
+      "is_answerable": false,
+      "target_record_ids": [],
+      "retrieved_record_ids": [
+        "105691",
+        "105692",
+        "104416",
+        "105689",
+        "102356"
+      ],
+      "hit_rank": null,
+      "hit_at_5": null,
+      "cited_record_ids": [
+        "105691",
+        "105692",
+        "104416",
+        "105689",
+        "102356"
+      ],
+      "is_correct_refusal": true,
+      "evidence_status": "insufficient",
+      "is_fallback": true,
+      "latency_ms": 1973.44
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_01_EXACT_TECH",
+      "query": "vacuum tube and oil cooler line rubbing together Adel clamp",
+      "category": "exact_technical_term",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100065"
+      ],
+      "retrieved_record_ids": [
+        "100065",
+        "104660",
+        "101596",
+        "103634",
+        "102994"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "100065",
+        "104660",
+        "101596",
+        "103634",
+        "102994"
+      ],
+      "citation_precision": 0.2,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 873.81
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_02_EXACT_TECH",
+      "query": "fuel pressure transducer ground path cleaned",
+      "category": "exact_technical_term",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100067"
+      ],
+      "retrieved_record_ids": [
+        "100067",
+        "105769",
+        "101633",
+        "102722",
+        "105183"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "100067",
+        "105769",
+        "101633",
+        "102722",
+        "105183"
+      ],
+      "citation_precision": 0.2,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 1104.81
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_03_EXACT_TECH",
+      "query": "starter ring gear damaged teeth dressed or replaced",
+      "category": "exact_technical_term",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100274",
+        "100309",
+        "100929"
+      ],
+      "retrieved_record_ids": [
+        "100929",
+        "100309",
+        "100274",
+        "100989",
+        "105417"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "100929",
+        "100309",
+        "100274",
+        "100989",
+        "105417"
+      ],
+      "citation_precision": 0.6,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 493.55
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_04_EXACT_TECH",
+      "query": "engine removed to facilitate firewall repair by Odegaard Wings",
+      "category": "exact_technical_term",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100186",
+        "100254",
+        "100253"
+      ],
+      "retrieved_record_ids": [
+        "100253",
+        "100186",
+        "100184",
+        "100254",
+        "100185"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "100253",
+        "100186",
+        "100184",
+        "100254",
+        "100185"
+      ],
+      "citation_precision": 0.6,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 508.21
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_05_EXACT_TECH",
+      "query": "dirty sniffler valves cleaned",
+      "category": "exact_technical_term",
+      "is_answerable": true,
+      "target_record_ids": [
+        "102821",
+        "101087",
+        "102715",
+        "102430"
+      ],
+      "retrieved_record_ids": [
+        "105093",
+        "105181",
+        "104147",
+        "105223",
+        "105862"
+      ],
+      "hit_rank": null,
+      "hit_at_5": false,
+      "cited_record_ids": [
+        "105093",
+        "105181",
+        "104147",
+        "105223",
+        "105862"
+      ],
+      "citation_precision": 0.0,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 574.18
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_06_ABBREV_EXPANDED",
+      "query": "alternator cooling hose chafing against alternator battery cable",
+      "category": "abbreviation_expanded",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100637"
+      ],
+      "retrieved_record_ids": [
+        "100637",
+        "101071",
+        "105980",
+        "102238",
+        "101518"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "100637",
+        "101071",
+        "105980",
+        "102238",
+        "101518"
+      ],
+      "citation_precision": 0.2,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 549.62
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_07_ABBREV_EXPANDED",
+      "query": "cylinder intake or exhaust valve staked to restore compression",
+      "category": "abbreviation_expanded",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100914",
+        "100915",
+        "100473",
+        "101083",
+        "100116"
+      ],
+      "retrieved_record_ids": [
+        "102378",
+        "102911",
+        "105312",
+        "100116",
+        "100914"
+      ],
+      "hit_rank": 4,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "102378",
+        "102911",
+        "105312",
+        "100116",
+        "100914"
+      ],
+      "citation_precision": 0.4,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 596.3
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_08_ABBREV_EXPANDED",
+      "query": "spark plug access hole button plugs worn on engine cooling baffle",
+      "category": "abbreviation_expanded",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100346",
+        "100156",
+        "100195",
+        "100320",
+        "100311"
+      ],
+      "retrieved_record_ids": [
+        "101697",
+        "101475",
+        "101073",
+        "101146",
+        "102634"
+      ],
+      "hit_rank": null,
+      "hit_at_5": false,
+      "cited_record_ids": [
+        "101697",
+        "101475",
+        "101073",
+        "101146",
+        "102634"
+      ],
+      "citation_precision": 0.0,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 487.99
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_09_ABBREV_EXPANDED",
+      "query": "front crankshaft oil seal leaking replaced",
+      "category": "abbreviation_expanded",
+      "is_answerable": true,
+      "target_record_ids": [
+        "103176",
+        "103175",
+        "101906",
+        "101904",
+        "101905"
+      ],
+      "retrieved_record_ids": [
+        "103176",
+        "103175",
+        "105866",
+        "105982",
+        "103806"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "103176",
+        "103175",
+        "105866",
+        "105982",
+        "103806"
+      ],
+      "citation_precision": 0.4,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 543.09
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_10_ABBREV_EXPANDED",
+      "query": "torquemeter pressure and vent hoses replacement",
+      "category": "abbreviation_expanded",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100416",
+        "100411",
+        "100414",
+        "100412",
+        "100413",
+        "100415"
+      ],
+      "retrieved_record_ids": [
+        "100415",
+        "100416",
+        "100413",
+        "100414",
+        "100411"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "100415",
+        "100416",
+        "100413",
+        "100414",
+        "100411"
+      ],
+      "citation_precision": 1.0,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 489.9
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_11_NOISY_MISSPELLING",
+      "query": "throtle linkag dog bone lose bering",
+      "category": "misspelling_noisy",
+      "is_answerable": true,
+      "target_record_ids": [
+        "100603"
+      ],
+      "retrieved_record_ids": [
+        "100603",
+        "103302",
+        "105704",
+        "103355",
+        "105702"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "100603",
+        "103302",
+        "105704",
+        "103355",
+        "105702"
+      ],
+      "citation_precision": 0.2,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 530.32
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_12_NOISY_MISSPELLING",
+      "query": "low compreshun 20/80 on cilinder 4",
+      "category": "misspelling_noisy",
+      "is_answerable": true,
+      "target_record_ids": [
+        "101232",
+        "101231",
+        "104240"
+      ],
+      "retrieved_record_ids": [
+        "103952",
+        "106147",
+        "101231",
+        "101232",
+        "103951"
+      ],
+      "hit_rank": 3,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "103952",
+        "106147",
+        "101231",
+        "101232",
+        "103951"
+      ],
+      "citation_precision": 0.4,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 523.63
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_13_PARAPHRASED",
+      "query": "re-swaged intake pipe at oil sump connection",
+      "category": "paraphrased",
+      "is_answerable": true,
+      "target_record_ids": [
+        "101327",
+        "101308",
+        "101650",
+        "101727",
+        "101496",
+        "101690"
+      ],
+      "retrieved_record_ids": [
+        "101308",
+        "102527",
+        "101650",
+        "101727",
+        "102526"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "101308",
+        "102527",
+        "101650",
+        "101727",
+        "102526"
+      ],
+      "citation_precision": 0.6,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 530.25
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_14_PARAPHRASED",
+      "query": "propeller low pitch stop adjusted after engine run",
+      "category": "paraphrased",
+      "is_answerable": true,
+      "target_record_ids": [
+        "102959"
+      ],
+      "retrieved_record_ids": [
+        "102959",
+        "103165",
+        "100011",
+        "105082",
+        "102789"
+      ],
+      "hit_rank": 1,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "102959",
+        "103165",
+        "100011",
+        "105082",
+        "102789"
+      ],
+      "citation_precision": 0.2,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 545.13
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_15_PARAPHRASED",
+      "query": "cylinder 3 dry tappet clearance check with shorter push rod",
+      "category": "paraphrased",
+      "is_answerable": true,
+      "target_record_ids": [
+        "101459",
+        "100040"
+      ],
+      "retrieved_record_ids": [
+        "104620",
+        "106099",
+        "101459",
+        "106129",
+        "106132"
+      ],
+      "hit_rank": 3,
+      "hit_at_5": true,
+      "cited_record_ids": [
+        "104620",
+        "106099",
+        "101459",
+        "106129",
+        "106132"
+      ],
+      "citation_precision": 0.2,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 678.56
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_16_UNANSWERABLE",
+      "query": "trailing edge wing flap asymmetry lockout sensor reset",
+      "category": "unanswerable",
+      "is_answerable": false,
+      "target_record_ids": [],
+      "retrieved_record_ids": [
+        "101613",
+        "104288",
+        "105606",
+        "104682",
+        "105210"
+      ],
+      "hit_rank": null,
+      "hit_at_5": null,
+      "cited_record_ids": [
+        "101613",
+        "104288",
+        "105606",
+        "104682",
+        "105210"
+      ],
+      "is_correct_refusal": false,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 480.22
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_17_UNANSWERABLE",
+      "query": "bleed air precooler temperature control valve malfunction",
+      "category": "unanswerable",
+      "is_answerable": false,
+      "target_record_ids": [],
+      "retrieved_record_ids": [
+        "103581",
+        "102164",
+        "104868",
+        "100873",
+        "104246"
+      ],
+      "hit_rank": null,
+      "hit_at_5": null,
+      "cited_record_ids": [
+        "103581",
+        "102164",
+        "104868",
+        "100873",
+        "104246"
+      ],
+      "is_correct_refusal": false,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 472.2
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_18_UNANSWERABLE",
+      "query": "cockpit voice recorder underwater locator beacon battery replacement",
+      "category": "unanswerable",
+      "is_answerable": false,
+      "target_record_ids": [],
+      "retrieved_record_ids": [
+        "103309",
+        "105605",
+        "104230",
+        "104360",
+        "100786"
+      ],
+      "hit_rank": null,
+      "hit_at_5": null,
+      "cited_record_ids": [
+        "103309",
+        "105605",
+        "104230",
+        "104360",
+        "100786"
+      ],
+      "is_correct_refusal": false,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 545.26
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_19_UNANSWERABLE",
+      "query": "engine fire extinguishing squib bottle discharge test",
+      "category": "unanswerable",
+      "is_answerable": false,
+      "target_record_ids": [],
+      "retrieved_record_ids": [
+        "105590",
+        "102694",
+        "105360",
+        "101646",
+        "101271"
+      ],
+      "hit_rank": null,
+      "hit_at_5": null,
+      "cited_record_ids": [
+        "105590",
+        "102694",
+        "105360",
+        "101646",
+        "101271"
+      ],
+      "is_correct_refusal": false,
+      "evidence_status": "sufficient",
+      "is_fallback": true,
+      "latency_ms": 537.55
+    },
+    {
+      "split": "test",
+      "query_id": "TEST_20_UNANSWERABLE",
+      "query": "emergency evacuation slide deployment bottle hydrostatic inspection",
+      "category": "unanswerable",
+      "is_answerable": false,
+      "target_record_ids": [],
+      "retrieved_record_ids": [
+        "102497",
+        "102490",
+        "102498",
+        "100304",
+        "100452"
+      ],
+      "hit_rank": null,
+      "hit_at_5": null,
+      "cited_record_ids": [
+        "102497",
+        "102490",
+        "102498",
+        "100304",
+        "100452"
+      ],
+      "is_correct_refusal": true,
+      "evidence_status": "insufficient",
+      "is_fallback": true,
+      "latency_ms": 464.18
+    }
+  ]
+}
