@@ -31,7 +31,7 @@ from src.agent.select_then_quote import (
     validate_and_render_claims
 )
 
-DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
 DEFAULT_MAX_TOOL_CALLS = 5
 DEFAULT_EVIDENCE_MODE = "free_text"
 
