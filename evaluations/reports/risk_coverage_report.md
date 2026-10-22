@@ -1,6 +1,6 @@
 # Risk-Coverage Evaluation of the Evidence Gate
 **Benchmark Split:** Development (N=20, Strictly held-out test split excluded)
-**Date:** 2026-10-22T08:28:05Z
+**Date:** 2026-10-22T09:47:06Z
 
 ## 1. Executive Summary & Hypothesis Validation
 - **Hypothesis Verified**: A single accuracy number obscures how the evidence gate trades off coverage against error risk.

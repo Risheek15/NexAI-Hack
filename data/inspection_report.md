@@ -2,8 +2,8 @@
 
 ## 1. File Metadata
 - **File Name:** `logbooks.csv`
-- **File Path:** `C:\Users\r1tpr\.gemini\antigravity\scratch\maintenance-copilot\data\raw\logbooks.csv`
-- **File Size:** 0.48 MB (504,992 bytes)
+- **File Path:** `/Users/rishitmittal/aircraft/NexAI-Hack/data/raw/logbooks.csv`
+- **File Size:** 0.48 MB (498,823 bytes)
 - **Detected Encoding:** `utf-8-sig`
 - **Byte Order Mark (BOM):** `Present (UTF-8-SIG required)`
 - **Total Records:** 6,169
