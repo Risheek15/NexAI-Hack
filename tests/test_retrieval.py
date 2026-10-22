@@ -138,7 +138,9 @@ class TestHybridRetriever:
         assert "rrf_score" in results[0].metadata
 
     def test_original_text_available_for_citation(self, sample_records, tmp_path):
-        hybrid = HybridRetriever(records=sample_records)
+        bm25 = BM25Retriever(records=sample_records, index_path=tmp_path / "bm25_cit.pkl")
+        semantic = SemanticRetriever(records=sample_records, embeddings_path=tmp_path / "embs_cit.npy", ids_path=tmp_path / "ids_cit.json")
+        hybrid = HybridRetriever(records=sample_records, bm25_retriever=bm25, semantic_retriever=semantic)
         results = hybrid.search("stop drilled crack", top_k=1)
         assert len(results) == 1
         res = results[0]

@@ -1,0 +1,2055 @@
+{
+  "created_at": "2026-10-22T08:21:07Z",
+  "split_evaluated": "dev",
+  "held_out_test_evaluated": false,
+  "seed": 42,
+  "config": {
+    "embedding_model": "all-MiniLM-L6-v2",
+    "gemini_model_configured": "gemini-2.5-flash",
+    "max_tool_calls": 5,
+    "rrf_k": 60,
+    "top_k": 5
+  },
+  "dependency_versions": {
+    "python": "3.12.7",
+    "numpy": "2.5.4"
+  },
+  "file_hashes_sha256": {
+    "data/raw/logbooks.csv": "c78205fd400bf2c4216fbf24fa4135ff9f109ee0fe6b1bb2a6dfb0b3b6661e5e",
+    "data/processed/records.jsonl": "49375e8b967d68ef0c393a922658adde7e44c865ac6da91df58a1e596cf4cec7",
+    "data/processed/records_lookup.json": "e0e88246fcc66a0acdeb28e0954f3ac16187ea34e1e12b882ac09a678f285414",
+    "data/processed/embedding_ids.json": "9d7f544cba90dabf00670af3362602825d4a02b0ca6dfd25502a53c688e02b98",
+    "data/processed/embeddings.npy": "01aab8bfdc742c2fae38cc1df911f5e37321b77d4223a4b5ebefba3290f2cc83",
+    "data/glossary.json": "ee868ad6792cc4f41b1ddf2d42d304b3e8f5f3544256700655b2dbac5b1fc44f",
+    "data/eval_queries_40.json": "89782c4c2bd27e8e3f1250c29bd4fd06c2a1c41a6b36672fa7f03a06e8d2a24f",
+    ".env": "7f1355da753852752432a819834743a5bfb127f85c07e1872eb77be4c87171d1"
+  },
+  "reliability_observations": [
+    "Small sample size: DEV set has 20 queries (15 answerable, 5 unanswerable). Single answerable query flipping shifts metrics by 6.67%; single unanswerable flips abstention by 20.0%.",
+    "Multiple targets per query: DEV_01 has 1 target while DEV_10, DEV_11, DEV_12 have 6-7 targets, conferring unequal base retrieval probabilities across query classes.",
+    "Lexical query-target overlap: Queries in exact_technical_term directly mirror problem_raw/action_raw phrasing from source records.",
+    "Test set strictly isolated: Held-out test split (20 queries) was NOT executed during this baseline freeze in strict adherence to Rule 2."
+  ],
+  "modes": [
+    {
+      "mode": "BM25 (Baseline)",
+      "sample_size_total": 20,
+      "sample_size_ans": 15,
+      "sample_size_unans": 5,
+      "hit_at_5_count": "12/15",
+      "hit_at_5": 0.8,
+      "hit_at_5_bootstrap_ci_95": [
+        0.6,
+        1.0
+      ],
+      "mrr": 0.6056,
+      "mrr_bootstrap_ci_95": [
+        0.4054,
+        0.8167
+      ],
+      "citation_id_validity_count": "75/75",
+      "citation_id_validity": 1.0,
+      "invalid_nonexistent_ids": 0,
+      "unretrieved_cited_ids": 0,
+      "quote_validation_failure_count": "0/15",
+      "quote_validation_failure_rate": 0.0,
+      "invalid_quotes_count": 0,
+      "correct_abstention_count": "3/5",
+      "correct_abstention_rate": 0.6,
+      "false_refusal_count": "2/15",
+      "false_refusal_rate": 0.1333,
+      "latency_p50_ms": 3.19,
+      "latency_p95_ms": 4.32,
+      "latency_avg_ms": 3.34,
+      "error_count": "0/20",
+      "error_rate": 0.0,
+      "detailed_queries": [
+        {
+          "query_id": "DEV_01_EXACT_TECH",
+          "query": "removed and replaced fuel servo",
+          "target_record_ids": [
+            "100002"
+          ],
+          "retrieved_record_ids": [
+            "100002",
+            "105497",
+            "102130",
+            "102089",
+            "101647"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 3.88,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_02_EXACT_TECH",
+          "query": "oil dipstick oil stick is loose",
+          "target_record_ids": [
+            "100044"
+          ],
+          "retrieved_record_ids": [
+            "100044",
+            "101055",
+            "105013",
+            "106068",
+            "104864"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 3.87,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_03_EXACT_TECH",
+          "query": "engine cowl Dzus fasteners need retainers",
+          "target_record_ids": [
+            "102030"
+          ],
+          "retrieved_record_ids": [
+            "102030",
+            "104598",
+            "105591",
+            "105153",
+            "103210"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 3.28,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_04_EXACT_TECH",
+          "query": "stop drilled crack on L/H rear engine baffle",
+          "target_record_ids": [
+            "100012",
+            "100576",
+            "100802",
+            "100818"
+          ],
+          "retrieved_record_ids": [
+            "100012",
+            "100576",
+            "100818",
+            "103641",
+            "103800"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 4.01,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_05_ABBREV_EXPANDED",
+          "query": "left-hand rear engine baffle cracked",
+          "target_record_ids": [
+            "100012",
+            "100576",
+            "100802",
+            "100818"
+          ],
+          "retrieved_record_ids": [
+            "101410",
+            "101316",
+            "100012",
+            "100191",
+            "100576"
+          ],
+          "hit_rank": 3,
+          "latency_ms": 2.89,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_06_ABBREV_EXPANDED",
+          "query": "right-hand magneto blast tube fell off",
+          "target_record_ids": [
+            "100027"
+          ],
+          "retrieved_record_ids": [
+            "100027",
+            "100322",
+            "101383",
+            "103610",
+            "100728"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 3.05,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_07_ABBREV_EXPANDED",
+          "query": "cylinder head temperature probe fluctuating",
+          "target_record_ids": [
+            "100135",
+            "104459",
+            "104860"
+          ],
+          "retrieved_record_ids": [
+            "106164",
+            "104459",
+            "105254",
+            "104868",
+            "102822"
+          ],
+          "hit_rank": 2,
+          "latency_ms": 2.49,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_08_ABBREV_EXPANDED",
+          "query": "service instruction 388C reamed exhaust valves on all cylinders",
+          "target_record_ids": [
+            "100200"
+          ],
+          "retrieved_record_ids": [
+            "100200",
+            "105924",
+            "106081",
+            "105837",
+            "105110"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 4.33,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_09_ABBREV_EXPANDED",
+          "query": "engine overspeed revolutions per minute check",
+          "target_record_ids": [
+            "100149",
+            "100150",
+            "100151",
+            "100152",
+            "101078",
+            "101079"
+          ],
+          "retrieved_record_ids": [
+            "102759",
+            "100618",
+            "105563",
+            "100149",
+            "106023"
+          ],
+          "hit_rank": 4,
+          "latency_ms": 3.1,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_10_NOISY_MISSPELLING",
+          "query": "rockr box covr scrws lose",
+          "target_record_ids": [
+            "100006",
+            "100017",
+            "100023",
+            "100088",
+            "100095",
+            "100144",
+            "100218"
+          ],
+          "retrieved_record_ids": [
+            "100228",
+            "106016",
+            "105384",
+            "105152",
+            "100004"
+          ],
+          "hit_rank": null,
+          "latency_ms": 2.41,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_11_NOISY_MISSPELLING",
+          "query": "intak gasget leeking #2",
+          "target_record_ids": [
+            "100009",
+            "100068",
+            "100081",
+            "100086",
+            "100113",
+            "100122",
+            "100128"
+          ],
+          "retrieved_record_ids": [
+            "104700",
+            "102107",
+            "100220",
+            "100401",
+            "100491"
+          ],
+          "hit_rank": null,
+          "latency_ms": 2.49,
+          "evidence_status": "insufficient"
+        },
+        {
+          "query_id": "DEV_12_NOISY_MISSPELLING",
+          "query": "stck exaust valv cylnder #3",
+          "target_record_ids": [
+            "100376",
+            "100377",
+            "100384",
+            "100385",
+            "100696",
+            "105423"
+          ],
+          "retrieved_record_ids": [
+            "100303",
+            "100505",
+            "100564",
+            "100622",
+            "100999"
+          ],
+          "hit_rank": null,
+          "latency_ms": 2.73,
+          "evidence_status": "insufficient"
+        },
+        {
+          "query_id": "DEV_13_PARAPHRASED",
+          "query": "engine was running rough and vibrating heavily after departure",
+          "target_record_ids": [
+            "100004",
+            "100076",
+            "100077",
+            "100130"
+          ],
+          "retrieved_record_ids": [
+            "100130",
+            "100076",
+            "103912",
+            "100079",
+            "105158"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 4.22,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_14_PARAPHRASED",
+          "query": "shutting down the engine when idle override is engaged",
+          "target_record_ids": [
+            "100001",
+            "100002",
+            "100003"
+          ],
+          "retrieved_record_ids": [
+            "105478",
+            "100002",
+            "100001",
+            "106116",
+            "101471"
+          ],
+          "hit_rank": 2,
+          "latency_ms": 4.32,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_15_PARAPHRASED",
+          "query": "push rod tube shroud seal oil leak at crankcase",
+          "target_record_ids": [
+            "100370",
+            "100386",
+            "100452",
+            "100650",
+            "101100"
+          ],
+          "retrieved_record_ids": [
+            "105846",
+            "100452",
+            "103805",
+            "103806",
+            "100472"
+          ],
+          "hit_rank": 2,
+          "latency_ms": 4.31,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_16_UNANSWERABLE",
+          "query": "autopilot altitude hold disconnect and pitch trim runaway",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "102307",
+            "103912",
+            "103687",
+            "106086",
+            "102959"
+          ],
+          "latency_ms": 3.35,
+          "evidence_status": "insufficient",
+          "abstained": true
+        },
+        {
+          "query_id": "DEV_17_UNANSWERABLE",
+          "query": "cabin oxygen mask deployment failure above 15000 feet",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "105468",
+            "102165",
+            "103829",
+            "104088",
+            "103126"
+          ],
+          "latency_ms": 3.3,
+          "evidence_status": "insufficient",
+          "abstained": true
+        },
+        {
+          "query_id": "DEV_18_UNANSWERABLE",
+          "query": "landing gear hydraulic retraction actuator overhaul",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "100929",
+            "101816",
+            "100309",
+            "100274",
+            "105542"
+          ],
+          "latency_ms": 2.69,
+          "evidence_status": "sufficient",
+          "abstained": false
+        },
+        {
+          "query_id": "DEV_19_UNANSWERABLE",
+          "query": "auxiliary power unit APU generator bearing fire",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "105590",
+            "103734",
+            "100603",
+            "102694",
+            "101653"
+          ],
+          "latency_ms": 3.07,
+          "evidence_status": "sufficient",
+          "abstained": false
+        },
+        {
+          "query_id": "DEV_20_UNANSWERABLE",
+          "query": "thrust reverser cascade vane unlock in flight",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "101314",
+            "101178",
+            "101179",
+            "101132",
+            "105690"
+          ],
+          "latency_ms": 3.05,
+          "evidence_status": "insufficient",
+          "abstained": true
+        }
+      ]
+    },
+    {
+      "mode": "Dense Semantic",
+      "sample_size_total": 20,
+      "sample_size_ans": 15,
+      "sample_size_unans": 5,
+      "hit_at_5_count": "9/15",
+      "hit_at_5": 0.6,
+      "hit_at_5_bootstrap_ci_95": [
+        0.3333,
+        0.8667
+      ],
+      "mrr": 0.4689,
+      "mrr_bootstrap_ci_95": [
+        0.2356,
+        0.689
+      ],
+      "citation_id_validity_count": "75/75",
+      "citation_id_validity": 1.0,
+      "invalid_nonexistent_ids": 0,
+      "unretrieved_cited_ids": 0,
+      "quote_validation_failure_count": "2/15",
+      "quote_validation_failure_rate": 0.1333,
+      "invalid_quotes_count": 4,
+      "correct_abstention_count": "3/5",
+      "correct_abstention_rate": 0.6,
+      "false_refusal_count": "0/15",
+      "false_refusal_rate": 0.0,
+      "latency_p50_ms": 7.67,
+      "latency_p95_ms": 148.89,
+      "latency_avg_ms": 144.3,
+      "error_count": "0/20",
+      "error_rate": 0.0,
+      "detailed_queries": [
+        {
+          "query_id": "DEV_01_EXACT_TECH",
+          "query": "removed and replaced fuel servo",
+          "target_record_ids": [
+            "100002"
+          ],
+          "retrieved_record_ids": [
+            "100002",
+            "105497",
+            "102130",
+            "104506",
+            "102512"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 2732.36,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_02_EXACT_TECH",
+          "query": "oil dipstick oil stick is loose",
+          "target_record_ids": [
+            "100044"
+          ],
+          "retrieved_record_ids": [
+            "100044",
+            "106068",
+            "105013",
+            "101055",
+            "101150"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 12.92,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_03_EXACT_TECH",
+          "query": "engine cowl Dzus fasteners need retainers",
+          "target_record_ids": [
+            "102030"
+          ],
+          "retrieved_record_ids": [
+            "102030",
+            "105591",
+            "105204",
+            "102624",
+            "105363"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 9.58,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_04_EXACT_TECH",
+          "query": "stop drilled crack on L/H rear engine baffle",
+          "target_record_ids": [
+            "100012",
+            "100576",
+            "100802",
+            "100818"
+          ],
+          "retrieved_record_ids": [
+            "100576",
+            "100818",
+            "103641",
+            "100012",
+            "103800"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 8.67,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_05_ABBREV_EXPANDED",
+          "query": "left-hand rear engine baffle cracked",
+          "target_record_ids": [
+            "100012",
+            "100576",
+            "100802",
+            "100818"
+          ],
+          "retrieved_record_ids": [
+            "104069",
+            "101316",
+            "106094",
+            "106092",
+            "102223"
+          ],
+          "hit_rank": null,
+          "latency_ms": 9.64,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_06_ABBREV_EXPANDED",
+          "query": "right-hand magneto blast tube fell off",
+          "target_record_ids": [
+            "100027"
+          ],
+          "retrieved_record_ids": [
+            "100027",
+            "105942",
+            "101150",
+            "102696",
+            "100039"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 7.99,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_07_ABBREV_EXPANDED",
+          "query": "cylinder head temperature probe fluctuating",
+          "target_record_ids": [
+            "100135",
+            "104459",
+            "104860"
+          ],
+          "retrieved_record_ids": [
+            "102822",
+            "104459",
+            "105050",
+            "104923",
+            "104868"
+          ],
+          "hit_rank": 2,
+          "latency_ms": 6.83,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_08_ABBREV_EXPANDED",
+          "query": "service instruction 388C reamed exhaust valves on all cylinders",
+          "target_record_ids": [
+            "100200"
+          ],
+          "retrieved_record_ids": [
+            "105421",
+            "104694",
+            "105820",
+            "104494",
+            "100955"
+          ],
+          "hit_rank": null,
+          "latency_ms": 9.33,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_09_ABBREV_EXPANDED",
+          "query": "engine overspeed revolutions per minute check",
+          "target_record_ids": [
+            "100149",
+            "100150",
+            "100151",
+            "100152",
+            "101078",
+            "101079"
+          ],
+          "retrieved_record_ids": [
+            "106169",
+            "101430",
+            "106023",
+            "106049",
+            "105562"
+          ],
+          "hit_rank": null,
+          "latency_ms": 6.8,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_10_NOISY_MISSPELLING",
+          "query": "rockr box covr scrws lose",
+          "target_record_ids": [
+            "100006",
+            "100017",
+            "100023",
+            "100088",
+            "100095",
+            "100144",
+            "100218"
+          ],
+          "retrieved_record_ids": [
+            "106017",
+            "105798",
+            "100155",
+            "101027",
+            "105814"
+          ],
+          "hit_rank": null,
+          "latency_ms": 6.96,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_11_NOISY_MISSPELLING",
+          "query": "intak gasget leeking #2",
+          "target_record_ids": [
+            "100009",
+            "100068",
+            "100081",
+            "100086",
+            "100113",
+            "100122",
+            "100128"
+          ],
+          "retrieved_record_ids": [
+            "103205",
+            "102507",
+            "100016",
+            "105443",
+            "103026"
+          ],
+          "hit_rank": null,
+          "latency_ms": 6.75,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_12_NOISY_MISSPELLING",
+          "query": "stck exaust valv cylnder #3",
+          "target_record_ids": [
+            "100376",
+            "100377",
+            "100384",
+            "100385",
+            "100696",
+            "105423"
+          ],
+          "retrieved_record_ids": [
+            "104571",
+            "104414",
+            "105461",
+            "104485",
+            "104568"
+          ],
+          "hit_rank": null,
+          "latency_ms": 7.88,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_13_PARAPHRASED",
+          "query": "engine was running rough and vibrating heavily after departure",
+          "target_record_ids": [
+            "100004",
+            "100076",
+            "100077",
+            "100130"
+          ],
+          "retrieved_record_ids": [
+            "100080",
+            "105387",
+            "100079",
+            "103912",
+            "100130"
+          ],
+          "hit_rank": 5,
+          "latency_ms": 7.02,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_14_PARAPHRASED",
+          "query": "shutting down the engine when idle override is engaged",
+          "target_record_ids": [
+            "100001",
+            "100002",
+            "100003"
+          ],
+          "retrieved_record_ids": [
+            "100001",
+            "101007",
+            "100002",
+            "100054",
+            "104517"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 8.69,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_15_PARAPHRASED",
+          "query": "push rod tube shroud seal oil leak at crankcase",
+          "target_record_ids": [
+            "100370",
+            "100386",
+            "100452",
+            "100650",
+            "101100"
+          ],
+          "retrieved_record_ids": [
+            "103806",
+            "103459",
+            "100370",
+            "103159",
+            "103175"
+          ],
+          "hit_rank": 3,
+          "latency_ms": 7.49,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_16_UNANSWERABLE",
+          "query": "autopilot altitude hold disconnect and pitch trim runaway",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "104090",
+            "104844",
+            "104041",
+            "100001",
+            "104955"
+          ],
+          "latency_ms": 7.85,
+          "evidence_status": "insufficient",
+          "abstained": true
+        },
+        {
+          "query_id": "DEV_17_UNANSWERABLE",
+          "query": "cabin oxygen mask deployment failure above 15000 feet",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "103869",
+            "105295",
+            "100136",
+            "100593",
+            "103362"
+          ],
+          "latency_ms": 7.26,
+          "evidence_status": "insufficient",
+          "abstained": true
+        },
+        {
+          "query_id": "DEV_18_UNANSWERABLE",
+          "query": "landing gear hydraulic retraction actuator overhaul",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "102029",
+            "102026",
+            "105148",
+            "102130",
+            "105345"
+          ],
+          "latency_ms": 7.39,
+          "evidence_status": "sufficient",
+          "abstained": false
+        },
+        {
+          "query_id": "DEV_19_UNANSWERABLE",
+          "query": "auxiliary power unit APU generator bearing fire",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "101271",
+            "103115",
+            "106055",
+            "105777",
+            "105497"
+          ],
+          "latency_ms": 7.31,
+          "evidence_status": "sufficient",
+          "abstained": false
+        },
+        {
+          "query_id": "DEV_20_UNANSWERABLE",
+          "query": "thrust reverser cascade vane unlock in flight",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "105606",
+            "101613",
+            "105691",
+            "104970",
+            "103184"
+          ],
+          "latency_ms": 7.21,
+          "evidence_status": "insufficient",
+          "abstained": true
+        }
+      ]
+    },
+    {
+      "mode": "Hybrid RRF (Baseline)",
+      "sample_size_total": 20,
+      "sample_size_ans": 15,
+      "sample_size_unans": 5,
+      "hit_at_5_count": "11/15",
+      "hit_at_5": 0.7333,
+      "hit_at_5_bootstrap_ci_95": [
+        0.4667,
+        0.9333
+      ],
+      "mrr": 0.5889,
+      "mrr_bootstrap_ci_95": [
+        0.361,
+        0.8167
+      ],
+      "citation_id_validity_count": "75/75",
+      "citation_id_validity": 1.0,
+      "invalid_nonexistent_ids": 0,
+      "unretrieved_cited_ids": 0,
+      "quote_validation_failure_count": "1/15",
+      "quote_validation_failure_rate": 0.0667,
+      "invalid_quotes_count": 1,
+      "correct_abstention_count": "3/5",
+      "correct_abstention_rate": 0.6,
+      "false_refusal_count": "2/15",
+      "false_refusal_rate": 0.1333,
+      "latency_p50_ms": 9.75,
+      "latency_p95_ms": 12.27,
+      "latency_avg_ms": 10.01,
+      "error_count": "0/20",
+      "error_rate": 0.0,
+      "detailed_queries": [
+        {
+          "query_id": "DEV_01_EXACT_TECH",
+          "query": "removed and replaced fuel servo",
+          "target_record_ids": [
+            "100002"
+          ],
+          "retrieved_record_ids": [
+            "100002",
+            "105497",
+            "102130",
+            "102089",
+            "102512"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 12.23,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_02_EXACT_TECH",
+          "query": "oil dipstick oil stick is loose",
+          "target_record_ids": [
+            "100044"
+          ],
+          "retrieved_record_ids": [
+            "100044",
+            "101055",
+            "106068",
+            "105013",
+            "104707"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 10.78,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_03_EXACT_TECH",
+          "query": "engine cowl Dzus fasteners need retainers",
+          "target_record_ids": [
+            "102030"
+          ],
+          "retrieved_record_ids": [
+            "102030",
+            "105591",
+            "103210",
+            "103093",
+            "105606"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 11.38,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_04_EXACT_TECH",
+          "query": "stop drilled crack on L/H rear engine baffle",
+          "target_record_ids": [
+            "100012",
+            "100576",
+            "100802",
+            "100818"
+          ],
+          "retrieved_record_ids": [
+            "100012",
+            "100576",
+            "100818",
+            "103641",
+            "103800"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 12.96,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_05_ABBREV_EXPANDED",
+          "query": "left-hand rear engine baffle cracked",
+          "target_record_ids": [
+            "100012",
+            "100576",
+            "100802",
+            "100818"
+          ],
+          "retrieved_record_ids": [
+            "101316",
+            "100191",
+            "104069",
+            "100576",
+            "100012"
+          ],
+          "hit_rank": 4,
+          "latency_ms": 10.27,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_06_ABBREV_EXPANDED",
+          "query": "right-hand magneto blast tube fell off",
+          "target_record_ids": [
+            "100027"
+          ],
+          "retrieved_record_ids": [
+            "100027",
+            "102286",
+            "101150",
+            "100322",
+            "104150"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 8.75,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_07_ABBREV_EXPANDED",
+          "query": "cylinder head temperature probe fluctuating",
+          "target_record_ids": [
+            "100135",
+            "104459",
+            "104860"
+          ],
+          "retrieved_record_ids": [
+            "104459",
+            "102822",
+            "106164",
+            "105050",
+            "104868"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 8.33,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_08_ABBREV_EXPANDED",
+          "query": "service instruction 388C reamed exhaust valves on all cylinders",
+          "target_record_ids": [
+            "100200"
+          ],
+          "retrieved_record_ids": [
+            "105421",
+            "102026",
+            "106081",
+            "105896",
+            "105673"
+          ],
+          "hit_rank": null,
+          "latency_ms": 11.54,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_09_ABBREV_EXPANDED",
+          "query": "engine overspeed revolutions per minute check",
+          "target_record_ids": [
+            "100149",
+            "100150",
+            "100151",
+            "100152",
+            "101078",
+            "101079"
+          ],
+          "retrieved_record_ids": [
+            "102759",
+            "106023",
+            "105563",
+            "100149",
+            "106049"
+          ],
+          "hit_rank": 4,
+          "latency_ms": 9.48,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_10_NOISY_MISSPELLING",
+          "query": "rockr box covr scrws lose",
+          "target_record_ids": [
+            "100006",
+            "100017",
+            "100023",
+            "100088",
+            "100095",
+            "100144",
+            "100218"
+          ],
+          "retrieved_record_ids": [
+            "100228",
+            "105152",
+            "106017",
+            "105798",
+            "100155"
+          ],
+          "hit_rank": null,
+          "latency_ms": 8.74,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_11_NOISY_MISSPELLING",
+          "query": "intak gasget leeking #2",
+          "target_record_ids": [
+            "100009",
+            "100068",
+            "100081",
+            "100086",
+            "100113",
+            "100122",
+            "100128"
+          ],
+          "retrieved_record_ids": [
+            "104700",
+            "103205",
+            "102107",
+            "102507",
+            "100220"
+          ],
+          "hit_rank": null,
+          "latency_ms": 8.64,
+          "evidence_status": "insufficient"
+        },
+        {
+          "query_id": "DEV_12_NOISY_MISSPELLING",
+          "query": "stck exaust valv cylnder #3",
+          "target_record_ids": [
+            "100376",
+            "100377",
+            "100384",
+            "100385",
+            "100696",
+            "105423"
+          ],
+          "retrieved_record_ids": [
+            "103026",
+            "100303",
+            "104571",
+            "100505",
+            "104414"
+          ],
+          "hit_rank": null,
+          "latency_ms": 9.24,
+          "evidence_status": "insufficient"
+        },
+        {
+          "query_id": "DEV_13_PARAPHRASED",
+          "query": "engine was running rough and vibrating heavily after departure",
+          "target_record_ids": [
+            "100004",
+            "100076",
+            "100077",
+            "100130"
+          ],
+          "retrieved_record_ids": [
+            "100130",
+            "103912",
+            "100079",
+            "100080",
+            "100076"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 9.79,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_14_PARAPHRASED",
+          "query": "shutting down the engine when idle override is engaged",
+          "target_record_ids": [
+            "100001",
+            "100002",
+            "100003"
+          ],
+          "retrieved_record_ids": [
+            "100001",
+            "100002",
+            "101007",
+            "106116",
+            "101471"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 10.38,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_15_PARAPHRASED",
+          "query": "push rod tube shroud seal oil leak at crankcase",
+          "target_record_ids": [
+            "100370",
+            "100386",
+            "100452",
+            "100650",
+            "101100"
+          ],
+          "retrieved_record_ids": [
+            "103806",
+            "103805",
+            "100386",
+            "100370",
+            "100452"
+          ],
+          "hit_rank": 3,
+          "latency_ms": 10.45,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_16_UNANSWERABLE",
+          "query": "autopilot altitude hold disconnect and pitch trim runaway",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "102307",
+            "103912",
+            "102959",
+            "104090",
+            "104844"
+          ],
+          "latency_ms": 10.23,
+          "evidence_status": "insufficient",
+          "abstained": true
+        },
+        {
+          "query_id": "DEV_17_UNANSWERABLE",
+          "query": "cabin oxygen mask deployment failure above 15000 feet",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "103869",
+            "100593",
+            "100594",
+            "104321",
+            "103883"
+          ],
+          "latency_ms": 9.71,
+          "evidence_status": "insufficient",
+          "abstained": true
+        },
+        {
+          "query_id": "DEV_18_UNANSWERABLE",
+          "query": "landing gear hydraulic retraction actuator overhaul",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "105550",
+            "105547",
+            "104603",
+            "105548",
+            "105345"
+          ],
+          "latency_ms": 8.99,
+          "evidence_status": "sufficient",
+          "abstained": false
+        },
+        {
+          "query_id": "DEV_19_UNANSWERABLE",
+          "query": "auxiliary power unit APU generator bearing fire",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "101271",
+            "102694",
+            "105497",
+            "103114",
+            "103115"
+          ],
+          "latency_ms": 9.57,
+          "evidence_status": "sufficient",
+          "abstained": false
+        },
+        {
+          "query_id": "DEV_20_UNANSWERABLE",
+          "query": "thrust reverser cascade vane unlock in flight",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "105691",
+            "105692",
+            "104416",
+            "105689",
+            "102356"
+          ],
+          "latency_ms": 8.73,
+          "evidence_status": "insufficient",
+          "abstained": true
+        }
+      ]
+    },
+    {
+      "mode": "Hybrid RRF (Abbr Expanded)",
+      "sample_size_total": 20,
+      "sample_size_ans": 15,
+      "sample_size_unans": 5,
+      "hit_at_5_count": "11/15",
+      "hit_at_5": 0.7333,
+      "hit_at_5_bootstrap_ci_95": [
+        0.4667,
+        0.9333
+      ],
+      "mrr": 0.6,
+      "mrr_bootstrap_ci_95": [
+        0.3772,
+        0.8222
+      ],
+      "citation_id_validity_count": "75/75",
+      "citation_id_validity": 1.0,
+      "invalid_nonexistent_ids": 0,
+      "unretrieved_cited_ids": 0,
+      "quote_validation_failure_count": "1/15",
+      "quote_validation_failure_rate": 0.0667,
+      "invalid_quotes_count": 1,
+      "correct_abstention_count": "3/5",
+      "correct_abstention_rate": 0.6,
+      "false_refusal_count": "2/15",
+      "false_refusal_rate": 0.1333,
+      "latency_p50_ms": 9.44,
+      "latency_p95_ms": 11.36,
+      "latency_avg_ms": 9.75,
+      "error_count": "0/20",
+      "error_rate": 0.0,
+      "detailed_queries": [
+        {
+          "query_id": "DEV_01_EXACT_TECH",
+          "query": "removed and replaced fuel servo",
+          "target_record_ids": [
+            "100002"
+          ],
+          "retrieved_record_ids": [
+            "100002",
+            "105497",
+            "102130",
+            "102089",
+            "104506"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 10.8,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_02_EXACT_TECH",
+          "query": "oil dipstick oil stick is loose",
+          "target_record_ids": [
+            "100044"
+          ],
+          "retrieved_record_ids": [
+            "100044",
+            "101055",
+            "106068",
+            "105013",
+            "104707"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 10.86,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_03_EXACT_TECH",
+          "query": "engine cowl Dzus fasteners need retainers",
+          "target_record_ids": [
+            "102030"
+          ],
+          "retrieved_record_ids": [
+            "102030",
+            "105591",
+            "103210",
+            "103093",
+            "105606"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 10.1,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_04_EXACT_TECH",
+          "query": "stop drilled crack on L/H rear engine baffle",
+          "target_record_ids": [
+            "100012",
+            "100576",
+            "100802",
+            "100818"
+          ],
+          "retrieved_record_ids": [
+            "100012",
+            "100576",
+            "100818",
+            "103641",
+            "103800"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 10.37,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_05_ABBREV_EXPANDED",
+          "query": "left-hand rear engine baffle cracked",
+          "target_record_ids": [
+            "100012",
+            "100576",
+            "100802",
+            "100818"
+          ],
+          "retrieved_record_ids": [
+            "100576",
+            "100012",
+            "100818",
+            "104069",
+            "103641"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 8.89,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_06_ABBREV_EXPANDED",
+          "query": "right-hand magneto blast tube fell off",
+          "target_record_ids": [
+            "100027"
+          ],
+          "retrieved_record_ids": [
+            "100027",
+            "106135",
+            "100322",
+            "103963",
+            "102286"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 9.52,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_07_ABBREV_EXPANDED",
+          "query": "cylinder head temperature probe fluctuating",
+          "target_record_ids": [
+            "100135",
+            "104459",
+            "104860"
+          ],
+          "retrieved_record_ids": [
+            "102822",
+            "106164",
+            "104459",
+            "105254",
+            "100135"
+          ],
+          "hit_rank": 3,
+          "latency_ms": 8.99,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_08_ABBREV_EXPANDED",
+          "query": "service instruction 388C reamed exhaust valves on all cylinders",
+          "target_record_ids": [
+            "100200"
+          ],
+          "retrieved_record_ids": [
+            "105421",
+            "102026",
+            "105673",
+            "106081",
+            "105837"
+          ],
+          "hit_rank": null,
+          "latency_ms": 11.36,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_09_ABBREV_EXPANDED",
+          "query": "engine overspeed revolutions per minute check",
+          "target_record_ids": [
+            "100149",
+            "100150",
+            "100151",
+            "100152",
+            "101078",
+            "101079"
+          ],
+          "retrieved_record_ids": [
+            "106049",
+            "102759",
+            "100149",
+            "106023",
+            "105562"
+          ],
+          "hit_rank": 3,
+          "latency_ms": 9.36,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_10_NOISY_MISSPELLING",
+          "query": "rockr box covr scrws lose",
+          "target_record_ids": [
+            "100006",
+            "100017",
+            "100023",
+            "100088",
+            "100095",
+            "100144",
+            "100218"
+          ],
+          "retrieved_record_ids": [
+            "100228",
+            "105152",
+            "106017",
+            "105798",
+            "100155"
+          ],
+          "hit_rank": null,
+          "latency_ms": 8.57,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_11_NOISY_MISSPELLING",
+          "query": "intak gasget leeking #2",
+          "target_record_ids": [
+            "100009",
+            "100068",
+            "100081",
+            "100086",
+            "100113",
+            "100122",
+            "100128"
+          ],
+          "retrieved_record_ids": [
+            "104700",
+            "103205",
+            "102107",
+            "102507",
+            "100220"
+          ],
+          "hit_rank": null,
+          "latency_ms": 8.38,
+          "evidence_status": "insufficient"
+        },
+        {
+          "query_id": "DEV_12_NOISY_MISSPELLING",
+          "query": "stck exaust valv cylnder #3",
+          "target_record_ids": [
+            "100376",
+            "100377",
+            "100384",
+            "100385",
+            "100696",
+            "105423"
+          ],
+          "retrieved_record_ids": [
+            "103026",
+            "100303",
+            "104571",
+            "100505",
+            "104414"
+          ],
+          "hit_rank": null,
+          "latency_ms": 9.22,
+          "evidence_status": "insufficient"
+        },
+        {
+          "query_id": "DEV_13_PARAPHRASED",
+          "query": "engine was running rough and vibrating heavily after departure",
+          "target_record_ids": [
+            "100004",
+            "100076",
+            "100077",
+            "100130"
+          ],
+          "retrieved_record_ids": [
+            "100130",
+            "100079",
+            "103912",
+            "100080",
+            "100076"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 10.4,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_14_PARAPHRASED",
+          "query": "shutting down the engine when idle override is engaged",
+          "target_record_ids": [
+            "100001",
+            "100002",
+            "100003"
+          ],
+          "retrieved_record_ids": [
+            "100001",
+            "100002",
+            "101471",
+            "101007",
+            "106116"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 10.09,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_15_PARAPHRASED",
+          "query": "push rod tube shroud seal oil leak at crankcase",
+          "target_record_ids": [
+            "100370",
+            "100386",
+            "100452",
+            "100650",
+            "101100"
+          ],
+          "retrieved_record_ids": [
+            "103806",
+            "103805",
+            "100386",
+            "100370",
+            "100452"
+          ],
+          "hit_rank": 3,
+          "latency_ms": 11.37,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_16_UNANSWERABLE",
+          "query": "autopilot altitude hold disconnect and pitch trim runaway",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "102307",
+            "103912",
+            "102959",
+            "104090",
+            "104844"
+          ],
+          "latency_ms": 10.59,
+          "evidence_status": "insufficient",
+          "abstained": true
+        },
+        {
+          "query_id": "DEV_17_UNANSWERABLE",
+          "query": "cabin oxygen mask deployment failure above 15000 feet",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "103869",
+            "100593",
+            "100594",
+            "104321",
+            "103450"
+          ],
+          "latency_ms": 9.37,
+          "evidence_status": "insufficient",
+          "abstained": true
+        },
+        {
+          "query_id": "DEV_18_UNANSWERABLE",
+          "query": "landing gear hydraulic retraction actuator overhaul",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "105550",
+            "105547",
+            "104603",
+            "105548",
+            "105345"
+          ],
+          "latency_ms": 8.78,
+          "evidence_status": "sufficient",
+          "abstained": false
+        },
+        {
+          "query_id": "DEV_19_UNANSWERABLE",
+          "query": "auxiliary power unit APU generator bearing fire",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "101271",
+            "102694",
+            "105497",
+            "103114",
+            "103115"
+          ],
+          "latency_ms": 8.82,
+          "evidence_status": "sufficient",
+          "abstained": false
+        },
+        {
+          "query_id": "DEV_20_UNANSWERABLE",
+          "query": "thrust reverser cascade vane unlock in flight",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "105691",
+            "105692",
+            "104416",
+            "105556",
+            "105689"
+          ],
+          "latency_ms": 9.17,
+          "evidence_status": "insufficient",
+          "abstained": true
+        }
+      ]
+    },
+    {
+      "mode": "BM25 (Abbr Expanded)",
+      "sample_size_total": 20,
+      "sample_size_ans": 15,
+      "sample_size_unans": 5,
+      "hit_at_5_count": "12/15",
+      "hit_at_5": 0.8,
+      "hit_at_5_bootstrap_ci_95": [
+        0.6,
+        1.0
+      ],
+      "mrr": 0.6,
+      "mrr_bootstrap_ci_95": [
+        0.3833,
+        0.8167
+      ],
+      "citation_id_validity_count": "75/75",
+      "citation_id_validity": 1.0,
+      "invalid_nonexistent_ids": 0,
+      "unretrieved_cited_ids": 0,
+      "quote_validation_failure_count": "0/15",
+      "quote_validation_failure_rate": 0.0,
+      "invalid_quotes_count": 0,
+      "correct_abstention_count": "3/5",
+      "correct_abstention_rate": 0.6,
+      "false_refusal_count": "2/15",
+      "false_refusal_rate": 0.1333,
+      "latency_p50_ms": 3.19,
+      "latency_p95_ms": 4.35,
+      "latency_avg_ms": 3.3,
+      "error_count": "0/20",
+      "error_rate": 0.0,
+      "detailed_queries": [
+        {
+          "query_id": "DEV_01_EXACT_TECH",
+          "query": "removed and replaced fuel servo",
+          "target_record_ids": [
+            "100002"
+          ],
+          "retrieved_record_ids": [
+            "100002",
+            "105497",
+            "102130",
+            "102089",
+            "101647"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 3.09,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_02_EXACT_TECH",
+          "query": "oil dipstick oil stick is loose",
+          "target_record_ids": [
+            "100044"
+          ],
+          "retrieved_record_ids": [
+            "100044",
+            "101055",
+            "105013",
+            "106068",
+            "104864"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 3.19,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_03_EXACT_TECH",
+          "query": "engine cowl Dzus fasteners need retainers",
+          "target_record_ids": [
+            "102030"
+          ],
+          "retrieved_record_ids": [
+            "102030",
+            "104598",
+            "105591",
+            "103210",
+            "103093"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 3.22,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_04_EXACT_TECH",
+          "query": "stop drilled crack on L/H rear engine baffle",
+          "target_record_ids": [
+            "100012",
+            "100576",
+            "100802",
+            "100818"
+          ],
+          "retrieved_record_ids": [
+            "100012",
+            "100191",
+            "100576",
+            "100818",
+            "103641"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 4.0,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_05_ABBREV_EXPANDED",
+          "query": "left-hand rear engine baffle cracked",
+          "target_record_ids": [
+            "100012",
+            "100576",
+            "100802",
+            "100818"
+          ],
+          "retrieved_record_ids": [
+            "102688",
+            "100012",
+            "100576",
+            "100818",
+            "103641"
+          ],
+          "hit_rank": 2,
+          "latency_ms": 3.13,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_06_ABBREV_EXPANDED",
+          "query": "right-hand magneto blast tube fell off",
+          "target_record_ids": [
+            "100027"
+          ],
+          "retrieved_record_ids": [
+            "100027",
+            "101383",
+            "103610",
+            "100322",
+            "100728"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 3.12,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_07_ABBREV_EXPANDED",
+          "query": "cylinder head temperature probe fluctuating",
+          "target_record_ids": [
+            "100135",
+            "104459",
+            "104860"
+          ],
+          "retrieved_record_ids": [
+            "106164",
+            "102822",
+            "103325",
+            "100135",
+            "104459"
+          ],
+          "hit_rank": 4,
+          "latency_ms": 2.73,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_08_ABBREV_EXPANDED",
+          "query": "service instruction 388C reamed exhaust valves on all cylinders",
+          "target_record_ids": [
+            "100200"
+          ],
+          "retrieved_record_ids": [
+            "100200",
+            "105924",
+            "106081",
+            "105110",
+            "105421"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 4.14,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_09_ABBREV_EXPANDED",
+          "query": "engine overspeed revolutions per minute check",
+          "target_record_ids": [
+            "100149",
+            "100150",
+            "100151",
+            "100152",
+            "101078",
+            "101079"
+          ],
+          "retrieved_record_ids": [
+            "100618",
+            "101839",
+            "104329",
+            "100149",
+            "102759"
+          ],
+          "hit_rank": 4,
+          "latency_ms": 3.23,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_10_NOISY_MISSPELLING",
+          "query": "rockr box covr scrws lose",
+          "target_record_ids": [
+            "100006",
+            "100017",
+            "100023",
+            "100088",
+            "100095",
+            "100144",
+            "100218"
+          ],
+          "retrieved_record_ids": [
+            "105384",
+            "100228",
+            "106016",
+            "105152",
+            "100004"
+          ],
+          "hit_rank": null,
+          "latency_ms": 2.53,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_11_NOISY_MISSPELLING",
+          "query": "intak gasget leeking #2",
+          "target_record_ids": [
+            "100009",
+            "100068",
+            "100081",
+            "100086",
+            "100113",
+            "100122",
+            "100128"
+          ],
+          "retrieved_record_ids": [
+            "104700",
+            "102107",
+            "100220",
+            "100401",
+            "100491"
+          ],
+          "hit_rank": null,
+          "latency_ms": 2.47,
+          "evidence_status": "insufficient"
+        },
+        {
+          "query_id": "DEV_12_NOISY_MISSPELLING",
+          "query": "stck exaust valv cylnder #3",
+          "target_record_ids": [
+            "100376",
+            "100377",
+            "100384",
+            "100385",
+            "100696",
+            "105423"
+          ],
+          "retrieved_record_ids": [
+            "100303",
+            "100505",
+            "100564",
+            "100622",
+            "100999"
+          ],
+          "hit_rank": null,
+          "latency_ms": 2.69,
+          "evidence_status": "insufficient"
+        },
+        {
+          "query_id": "DEV_13_PARAPHRASED",
+          "query": "engine was running rough and vibrating heavily after departure",
+          "target_record_ids": [
+            "100004",
+            "100076",
+            "100077",
+            "100130"
+          ],
+          "retrieved_record_ids": [
+            "100130",
+            "100076",
+            "100079",
+            "103912",
+            "100078"
+          ],
+          "hit_rank": 1,
+          "latency_ms": 4.35,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_14_PARAPHRASED",
+          "query": "shutting down the engine when idle override is engaged",
+          "target_record_ids": [
+            "100001",
+            "100002",
+            "100003"
+          ],
+          "retrieved_record_ids": [
+            "101471",
+            "100002",
+            "100001",
+            "105478",
+            "101081"
+          ],
+          "hit_rank": 2,
+          "latency_ms": 4.35,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_15_PARAPHRASED",
+          "query": "push rod tube shroud seal oil leak at crankcase",
+          "target_record_ids": [
+            "100370",
+            "100386",
+            "100452",
+            "100650",
+            "101100"
+          ],
+          "retrieved_record_ids": [
+            "105846",
+            "100452",
+            "103805",
+            "100472",
+            "100840"
+          ],
+          "hit_rank": 2,
+          "latency_ms": 4.24,
+          "evidence_status": "sufficient"
+        },
+        {
+          "query_id": "DEV_16_UNANSWERABLE",
+          "query": "autopilot altitude hold disconnect and pitch trim runaway",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "102307",
+            "103912",
+            "103687",
+            "106086",
+            "102959"
+          ],
+          "latency_ms": 3.24,
+          "evidence_status": "insufficient",
+          "abstained": true
+        },
+        {
+          "query_id": "DEV_17_UNANSWERABLE",
+          "query": "cabin oxygen mask deployment failure above 15000 feet",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "105468",
+            "102165",
+            "103829",
+            "104088",
+            "103126"
+          ],
+          "latency_ms": 3.32,
+          "evidence_status": "insufficient",
+          "abstained": true
+        },
+        {
+          "query_id": "DEV_18_UNANSWERABLE",
+          "query": "landing gear hydraulic retraction actuator overhaul",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "100929",
+            "101816",
+            "100309",
+            "100274",
+            "105542"
+          ],
+          "latency_ms": 2.69,
+          "evidence_status": "sufficient",
+          "abstained": false
+        },
+        {
+          "query_id": "DEV_19_UNANSWERABLE",
+          "query": "auxiliary power unit APU generator bearing fire",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "105590",
+            "103734",
+            "100603",
+            "102694",
+            "101653"
+          ],
+          "latency_ms": 3.02,
+          "evidence_status": "sufficient",
+          "abstained": false
+        },
+        {
+          "query_id": "DEV_20_UNANSWERABLE",
+          "query": "thrust reverser cascade vane unlock in flight",
+          "target_record_ids": [],
+          "retrieved_record_ids": [
+            "101314",
+            "101178",
+            "101179",
+            "104416",
+            "101132"
+          ],
+          "latency_ms": 3.18,
+          "evidence_status": "insufficient",
+          "abstained": true
+        }
+      ]
+    }
+  ]
+}

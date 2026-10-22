@@ -23,8 +23,17 @@ from src.agent.validator import validate_citations_and_quotes, CitationValidatio
 from src.agent.trace import ToolCallTrace, AgentTrace
 
 
+from src.agent.segmenter import segment_logbook_record, EvidenceUnit
+from src.agent.select_then_quote import (
+    StructuredClaim,
+    SelectThenQuoteResponse,
+    build_unit_registry_from_records,
+    validate_and_render_claims
+)
+
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 DEFAULT_MAX_TOOL_CALLS = 5
+DEFAULT_EVIDENCE_MODE = "free_text"
 
 SYSTEM_PROMPT = """You are the Maintenance Copilot, an AI assistant analyzing historical aviation maintenance logbooks.
 
@@ -54,7 +63,8 @@ class AgentResponse(BaseModel):
 
 class MaintenanceAgent:
     """
-    Autonomous maintenance copilot agent with bounded tool selection and citation validation.
+    Autonomous maintenance copilot agent with bounded tool selection,
+    citation validation, and configurable evidence modes (free_text vs select_then_quote).
     """
 
     def __init__(
@@ -62,12 +72,17 @@ class MaintenanceAgent:
         tools: Optional[MaintenanceTools] = None,
         model_name: Optional[str] = None,
         max_tool_calls: Optional[int] = None,
-        api_key: Optional[str] = None
+        api_key: Optional[str] = None,
+        evidence_mode: Optional[str] = None
     ):
         self.tools = tools or MaintenanceTools()
         self.model_name = model_name if model_name is not None else os.environ.get("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
         self.max_tool_calls = max_tool_calls if max_tool_calls is not None else int(os.environ.get("MAX_TOOL_CALLS", DEFAULT_MAX_TOOL_CALLS))
         self.api_key = api_key if api_key is not None else os.environ.get("GEMINI_API_KEY", "")
+        self.evidence_mode = (
+            evidence_mode if evidence_mode is not None
+            else os.environ.get("EVIDENCE_MODE", DEFAULT_EVIDENCE_MODE)
+        ).strip().lower()
 
     def _execute_tool(self, tool_name: str, args: Dict[str, Any], trace: AgentTrace) -> Dict[str, Any]:
         """Validates arguments, executes Python tool, measures latency, and records trace."""
@@ -126,30 +141,66 @@ class MaintenanceAgent:
         status = search_out.get("evidence_status", "insufficient")
         reason = search_out.get("evidence_reason", "")
 
-        lines = [
-            f"[FALLBACK MODE] {disclaimer}",
-            f"Evidence Assessment: {status.upper()} — {reason}",
-            "",
-            "### Retrieved Historical Maintenance Records:"
-        ]
-
-        if not records:
-            lines.append("No matching historical records found for this query.")
-        else:
+        if self.evidence_mode == "select_then_quote":
+            session_ids = set(trace.retrieved_record_ids)
+            unit_registry = build_unit_registry_from_records(records)
+            claims: List[StructuredClaim] = []
             for r in records:
-                lines.append(
-                    f"- **Record [ID: {r['record_id']}]** (Rank #{r['rank']})\n"
-                    f"  - **Problem Reported:** {r['problem_raw']}\n"
-                    f"  - **Action Taken:** {r['action_raw']}"
-                )
+                rec_id = str(r["record_id"])
+                s_uids = [u.unit_id for u in unit_registry.values() if u.record_id == rec_id and u.field == "problem"]
+                a_uids = [u.unit_id for u in unit_registry.values() if u.record_id == rec_id and u.field == "action"]
+                if s_uids:
+                    claims.append(StructuredClaim(
+                        claim_type="recorded_symptom",
+                        unit_ids=s_uids,
+                        paraphrase=f"Historical reported discrepancy for Record [ID: {rec_id}]"
+                    ))
+                if a_uids:
+                    claims.append(StructuredClaim(
+                        claim_type="recorded_action",
+                        unit_ids=a_uids,
+                        paraphrase=f"Historical maintenance corrective action for Record [ID: {rec_id}]"
+                    ))
 
-        lines.extend([
-            "",
-            "> [!NOTE]",
-            "> Historical logbook entries reflect past recorded actions, not approved maintenance manual procedures."
-        ])
+            disclaimer_str = (
+                f"[FALLBACK MODE] {disclaimer}\n"
+                f"Evidence Assessment: {status.upper()} — {reason}\n\n"
+                "> [!NOTE]\n"
+                "> Historical logbook entries reflect past recorded actions, not approved maintenance manual procedures."
+            )
+            stq_resp = validate_and_render_claims(
+                query=query,
+                claims=claims,
+                session_retrieved_record_ids=session_ids,
+                unit_registry=unit_registry,
+                disclaimer=disclaimer_str
+            )
+            answer_text = stq_resp.rendered_markdown
+        else:
+            lines = [
+                f"[FALLBACK MODE] {disclaimer}",
+                f"Evidence Assessment: {status.upper()} — {reason}",
+                "",
+                "### Retrieved Historical Maintenance Records:"
+            ]
 
-        answer_text = "\n".join(lines)
+            if not records:
+                lines.append("No matching historical records found for this query.")
+            else:
+                for r in records:
+                    lines.append(
+                        f"- **Record [ID: {r['record_id']}]** (Rank #{r['rank']})\n"
+                        f"  - **Problem Reported:** {r['problem_raw']}\n"
+                        f"  - **Action Taken:** {r['action_raw']}"
+                    )
+
+            lines.extend([
+                "",
+                "> [!NOTE]",
+                "> Historical logbook entries reflect past recorded actions, not approved maintenance manual procedures."
+            ])
+
+            answer_text = "\n".join(lines)
         valid_db_ids = set(self.tools.lookup.keys())
         session_ids = set(trace.retrieved_record_ids)
         validation = validate_citations_and_quotes(answer_text, valid_db_ids, session_ids, self.tools.lookup)

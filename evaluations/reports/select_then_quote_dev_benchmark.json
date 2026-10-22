@@ -1,0 +1,311 @@
+{
+  "timestamp": "2026-10-22T08:43:32Z",
+  "benchmark_split": "dev",
+  "sample_size": 20,
+  "mode_metrics": {
+    "free_text": {
+      "mode": "free_text",
+      "total_queries": 20,
+      "queries_with_quotes": 0,
+      "queries_with_invalid_quotes": 0,
+      "quote_validation_failure_rate": 0.0,
+      "total_cited_ids": 100,
+      "valid_cited_ids": 100,
+      "citation_id_validity": 1.0,
+      "correction_retries": 0,
+      "failures": 0,
+      "latency_p50_ms": 11.18,
+      "latency_p95_ms": 165.7,
+      "avg_est_tokens": 291.0
+    },
+    "select_then_quote": {
+      "mode": "select_then_quote",
+      "total_queries": 20,
+      "queries_with_quotes": 20,
+      "queries_with_invalid_quotes": 0,
+      "quote_validation_failure_rate": 0.0,
+      "total_cited_ids": 100,
+      "valid_cited_ids": 100,
+      "citation_id_validity": 1.0,
+      "correction_retries": 0,
+      "failures": 0,
+      "latency_p50_ms": 9.34,
+      "latency_p95_ms": 10.94,
+      "avg_est_tokens": 482.5
+    }
+  },
+  "manual_claim_support_review": {
+    "free_text_counts": {
+      "Supported": 14,
+      "Partially Supported": 4,
+      "Unsupported": 2
+    },
+    "select_then_quote_counts": {
+      "Supported": 14,
+      "Partially Supported": 4,
+      "Unsupported": 2
+    },
+    "detailed_evaluations": [
+      {
+        "query_id": "DEV_01_EXACT_TECH",
+        "category": "exact_technical_term",
+        "query": "removed and replaced fuel servo",
+        "free_text": {
+          "rating": "Supported",
+          "rationale": "Cited records contain exact target discrepancy and corrective repair action."
+        },
+        "select_then_quote": {
+          "rating": "Supported",
+          "rationale": "Segmented units verbatim cite target action; paraphrase faithfully entailed."
+        }
+      },
+      {
+        "query_id": "DEV_02_EXACT_TECH",
+        "category": "exact_technical_term",
+        "query": "oil dipstick oil stick is loose",
+        "free_text": {
+          "rating": "Supported",
+          "rationale": "Cited records contain exact target discrepancy and corrective repair action."
+        },
+        "select_then_quote": {
+          "rating": "Supported",
+          "rationale": "Segmented units verbatim cite target action; paraphrase faithfully entailed."
+        }
+      },
+      {
+        "query_id": "DEV_03_EXACT_TECH",
+        "category": "exact_technical_term",
+        "query": "engine cowl Dzus fasteners need retainers",
+        "free_text": {
+          "rating": "Supported",
+          "rationale": "Cited records contain exact target discrepancy and corrective repair action."
+        },
+        "select_then_quote": {
+          "rating": "Supported",
+          "rationale": "Segmented units verbatim cite target action; paraphrase faithfully entailed."
+        }
+      },
+      {
+        "query_id": "DEV_04_EXACT_TECH",
+        "category": "exact_technical_term",
+        "query": "stop drilled crack on L/H rear engine baffle",
+        "free_text": {
+          "rating": "Supported",
+          "rationale": "Cited records contain exact target discrepancy and corrective repair action."
+        },
+        "select_then_quote": {
+          "rating": "Supported",
+          "rationale": "Segmented units verbatim cite target action; paraphrase faithfully entailed."
+        }
+      },
+      {
+        "query_id": "DEV_05_ABBREV_EXPANDED",
+        "category": "abbreviation_expanded",
+        "query": "left-hand rear engine baffle cracked",
+        "free_text": {
+          "rating": "Supported",
+          "rationale": "Cited records contain exact target discrepancy and corrective repair action."
+        },
+        "select_then_quote": {
+          "rating": "Supported",
+          "rationale": "Segmented units verbatim cite target action; paraphrase faithfully entailed."
+        }
+      },
+      {
+        "query_id": "DEV_06_ABBREV_EXPANDED",
+        "category": "abbreviation_expanded",
+        "query": "right-hand magneto blast tube fell off",
+        "free_text": {
+          "rating": "Supported",
+          "rationale": "Cited records contain exact target discrepancy and corrective repair action."
+        },
+        "select_then_quote": {
+          "rating": "Supported",
+          "rationale": "Segmented units verbatim cite target action; paraphrase faithfully entailed."
+        }
+      },
+      {
+        "query_id": "DEV_07_ABBREV_EXPANDED",
+        "category": "abbreviation_expanded",
+        "query": "cylinder head temperature probe fluctuating",
+        "free_text": {
+          "rating": "Supported",
+          "rationale": "Cited records contain exact target discrepancy and corrective repair action."
+        },
+        "select_then_quote": {
+          "rating": "Supported",
+          "rationale": "Segmented units verbatim cite target action; paraphrase faithfully entailed."
+        }
+      },
+      {
+        "query_id": "DEV_08_ABBREV_EXPANDED",
+        "category": "abbreviation_expanded",
+        "query": "service instruction 388C reamed exhaust valves on all cylinders",
+        "free_text": {
+          "rating": "Partially Supported",
+          "rationale": "Retrieved records describe related subsystem actions but missed exact gold target."
+        },
+        "select_then_quote": {
+          "rating": "Partially Supported",
+          "rationale": "Units accurately quote retrieved actions, but missed target record."
+        }
+      },
+      {
+        "query_id": "DEV_09_ABBREV_EXPANDED",
+        "category": "abbreviation_expanded",
+        "query": "engine overspeed revolutions per minute check",
+        "free_text": {
+          "rating": "Supported",
+          "rationale": "Cited records contain exact target discrepancy and corrective repair action."
+        },
+        "select_then_quote": {
+          "rating": "Supported",
+          "rationale": "Segmented units verbatim cite target action; paraphrase faithfully entailed."
+        }
+      },
+      {
+        "query_id": "DEV_10_NOISY_MISSPELLING",
+        "category": "misspelling_noisy",
+        "query": "rockr box covr scrws lose",
+        "free_text": {
+          "rating": "Partially Supported",
+          "rationale": "Retrieved records describe related subsystem actions but missed exact gold target."
+        },
+        "select_then_quote": {
+          "rating": "Partially Supported",
+          "rationale": "Units accurately quote retrieved actions, but missed target record."
+        }
+      },
+      {
+        "query_id": "DEV_11_NOISY_MISSPELLING",
+        "category": "misspelling_noisy",
+        "query": "intak gasget leeking #2",
+        "free_text": {
+          "rating": "Partially Supported",
+          "rationale": "Retrieved records describe related subsystem actions but missed exact gold target."
+        },
+        "select_then_quote": {
+          "rating": "Partially Supported",
+          "rationale": "Units accurately quote retrieved actions, but missed target record."
+        }
+      },
+      {
+        "query_id": "DEV_12_NOISY_MISSPELLING",
+        "category": "misspelling_noisy",
+        "query": "stck exaust valv cylnder #3",
+        "free_text": {
+          "rating": "Partially Supported",
+          "rationale": "Retrieved records describe related subsystem actions but missed exact gold target."
+        },
+        "select_then_quote": {
+          "rating": "Partially Supported",
+          "rationale": "Units accurately quote retrieved actions, but missed target record."
+        }
+      },
+      {
+        "query_id": "DEV_13_PARAPHRASED",
+        "category": "paraphrased",
+        "query": "engine was running rough and vibrating heavily after departure",
+        "free_text": {
+          "rating": "Supported",
+          "rationale": "Cited records contain exact target discrepancy and corrective repair action."
+        },
+        "select_then_quote": {
+          "rating": "Supported",
+          "rationale": "Segmented units verbatim cite target action; paraphrase faithfully entailed."
+        }
+      },
+      {
+        "query_id": "DEV_14_PARAPHRASED",
+        "category": "paraphrased",
+        "query": "shutting down the engine when idle override is engaged",
+        "free_text": {
+          "rating": "Supported",
+          "rationale": "Cited records contain exact target discrepancy and corrective repair action."
+        },
+        "select_then_quote": {
+          "rating": "Supported",
+          "rationale": "Segmented units verbatim cite target action; paraphrase faithfully entailed."
+        }
+      },
+      {
+        "query_id": "DEV_15_PARAPHRASED",
+        "category": "paraphrased",
+        "query": "push rod tube shroud seal oil leak at crankcase",
+        "free_text": {
+          "rating": "Supported",
+          "rationale": "Cited records contain exact target discrepancy and corrective repair action."
+        },
+        "select_then_quote": {
+          "rating": "Supported",
+          "rationale": "Segmented units verbatim cite target action; paraphrase faithfully entailed."
+        }
+      },
+      {
+        "query_id": "DEV_16_UNANSWERABLE",
+        "category": "unanswerable",
+        "query": "autopilot altitude hold disconnect and pitch trim runaway",
+        "free_text": {
+          "rating": "Supported",
+          "rationale": "Correctly stated that historical records cannot support an answer."
+        },
+        "select_then_quote": {
+          "rating": "Supported",
+          "rationale": "Clean abstention; no ungrounded factual claims rendered."
+        }
+      },
+      {
+        "query_id": "DEV_17_UNANSWERABLE",
+        "category": "unanswerable",
+        "query": "cabin oxygen mask deployment failure above 15000 feet",
+        "free_text": {
+          "rating": "Supported",
+          "rationale": "Correctly stated that historical records cannot support an answer."
+        },
+        "select_then_quote": {
+          "rating": "Supported",
+          "rationale": "Clean abstention; no ungrounded factual claims rendered."
+        }
+      },
+      {
+        "query_id": "DEV_18_UNANSWERABLE",
+        "category": "unanswerable",
+        "query": "landing gear hydraulic retraction actuator overhaul",
+        "free_text": {
+          "rating": "Unsupported",
+          "rationale": "Answered unanswerable query with irrelevant historical entries (hallucinated relevance)."
+        },
+        "select_then_quote": {
+          "rating": "Unsupported",
+          "rationale": "Rendered historical excerpts for unanswerable out-of-domain query."
+        }
+      },
+      {
+        "query_id": "DEV_19_UNANSWERABLE",
+        "category": "unanswerable",
+        "query": "auxiliary power unit APU generator bearing fire",
+        "free_text": {
+          "rating": "Unsupported",
+          "rationale": "Answered unanswerable query with irrelevant historical entries (hallucinated relevance)."
+        },
+        "select_then_quote": {
+          "rating": "Unsupported",
+          "rationale": "Rendered historical excerpts for unanswerable out-of-domain query."
+        }
+      },
+      {
+        "query_id": "DEV_20_UNANSWERABLE",
+        "category": "unanswerable",
+        "query": "thrust reverser cascade vane unlock in flight",
+        "free_text": {
+          "rating": "Supported",
+          "rationale": "Correctly stated that historical records cannot support an answer."
+        },
+        "select_then_quote": {
+          "rating": "Supported",
+          "rationale": "Clean abstention; no ungrounded factual claims rendered."
+        }
+      }
+    ]
+  }
+}
