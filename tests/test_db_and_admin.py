@@ -209,44 +209,47 @@ def test_api_endpoints_workflow():
     """Tests the FastAPI routes for authentication, user creation, submission, pending queue, approval, and audit."""
     client = TestClient(app)
 
-    # 1. Login endpoint
+    # 1. Login endpoint returning session token
     login_res = client.post("/api/auth/login", json={"username": "admin", "password": "admin123"})
     assert login_res.status_code == 200
     assert login_res.json()["success"] is True
+    admin_token = login_res.json().get("token")
+    admin_headers = {"Authorization": f"Bearer {admin_token}"} if admin_token else {}
 
     # 2. Stats endpoint
     stats_res = client.get("/api/stats")
     assert stats_res.status_code == 200
     assert stats_res.json()["total_technicians"] >= 3
 
-    # 3. Admin creates new technician account
+    # 3. Admin creates new technician account with admin auth header
+    unique_user = f"tech_hannah_{os.urandom(3).hex()}"
     create_res = client.post("/api/admin/users", json={
-        "username": "tech_hannah",
+        "username": unique_user,
         "password": "mypassword1",
         "full_name": "Hannah Abbott",
         "role": "technician"
-    })
+    }, headers=admin_headers)
     assert create_res.status_code == 200
     assert create_res.json()["success"] is True
 
     # 4. List users
-    users_res = client.get("/api/admin/users")
+    users_res = client.get("/api/admin/users", headers=admin_headers)
     assert users_res.status_code == 200
-    assert any(u["username"] == "tech_hannah" for u in users_res.json())
+    assert any(u["username"] == unique_user for u in users_res.json())
 
     # 5. Submit fix
     submit_resp = client.post("/api/records/submit", json={
         "problem_raw": "ELEVATOR FEEL COMPUTER CAUTION LIGHT ILLUMINATED",
         "action_raw": "REPLACED ELEVATOR FEEL AND CENTERING UNIT PER AMM 27-31-00.",
         "submitted_by": "Hannah Abbott"
-    })
+    }, headers=admin_headers)
     assert submit_resp.status_code == 200
     data = submit_resp.json()
     assert data["status"] == "pending"
     temp_id = data["temp_id"]
 
     # 6. Admin retrieves pending queue
-    queue_resp = client.get("/api/admin/pending?status_filter=pending")
+    queue_resp = client.get("/api/admin/pending?status_filter=pending", headers=admin_headers)
     assert queue_resp.status_code == 200
     queue = queue_resp.json()
     assert any(item["temp_id"] == temp_id for item in queue)
@@ -254,7 +257,7 @@ def test_api_endpoints_workflow():
     # 7. Admin approves fix
     approve_resp = client.post(f"/api/admin/records/{temp_id}/approve", json={
         "admin_name": "Station Chief Miller"
-    })
+    }, headers=admin_headers)
     assert approve_resp.status_code == 200
     approve_data = approve_resp.json()
     assert approve_data["status"] == "approved"
@@ -274,21 +277,21 @@ def test_api_endpoints_workflow():
     assert chat_resp.status_code == 200
 
     # 10. Admin audit logs endpoint
-    audit_resp = client.get("/api/admin/audit-logs?limit=20")
+    audit_resp = client.get("/api/admin/audit-logs?limit=20", headers=admin_headers)
     assert audit_resp.status_code == 200
     audit_items = audit_resp.json()
     assert len(audit_items) > 0
     assert any(log["user_name"] == "Hannah Abbott" for log in audit_items)
 
     # 11. Technician views their own query logs
-    tech_logs_resp = client.get("/api/user/query-logs?user_name=Hannah+Abbott")
+    tech_logs_resp = client.get("/api/user/query-logs?user_name=Hannah+Abbott", headers=admin_headers)
     assert tech_logs_resp.status_code == 200
     tech_logs = tech_logs_resp.json()
     assert len(tech_logs) > 0
     assert all(log["user_name"] == "Hannah Abbott" for log in tech_logs)
 
     # 12. Admin deletes the technician account
-    hannah_user = [u for u in users_res.json() if u["username"] == "tech_hannah"][0]
-    del_resp = client.delete(f"/api/admin/users/{hannah_user['id']}")
+    hannah_user = [u for u in users_res.json() if u["username"] == unique_user][0]
+    del_resp = client.delete(f"/api/admin/users/{hannah_user['id']}", headers=admin_headers)
     assert del_resp.status_code == 200
     assert del_resp.json()["success"] is True

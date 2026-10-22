@@ -3,18 +3,20 @@ FastAPI Backend API for Maintenance Copilot MVP.
 Provides endpoints for:
 1. Health checking and record inspection
 2. Agentic chat interactions with deterministic citation gating
-3. Authentication and user accounts (Technicians & Airport Administrators)
-4. Technician maintenance fix submissions into staging SQLite queue
-5. Airport Administrator governance (approving/rejecting fixes, creating technician accounts)
-6. Real-time audit logs of technician queries
+3. Authentication and user accounts (Technicians & Airport Administrators) with salted PBKDF2
+4. Server-enforced role governance and token authentication
+5. Technician maintenance fix submissions into staging SQLite queue
+6. Airport Administrator governance (approving/rejecting fixes, creating technician accounts)
+7. Restart persistence syncing approved records into the retrieval index
 """
 
 import os
 import time
 from typing import List, Dict, Any, Optional
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Query, status
+from fastapi import FastAPI, HTTPException, Query, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,11 +27,12 @@ from src.agent.tools import MaintenanceTools
 from src.agent.core import MaintenanceAgent, AgentResponse
 from src.evidence.policy import audit_evidence_policy, check_safety_disclaimer_present
 from src.evidence.refusal import format_abstention_response, format_clarification_response, SAFETY_DISCLAIMER
-from src.db.database import DatabaseManager
+from src.db.database import DatabaseManager, create_session_token, verify_session_token
 from src.api.schemas import (
     ChatRequest,
     ChatResponse,
     CitationDetail,
+    CitationValidationSummary,
     ToolTraceItem,
     PolicyAuditSummary,
     HealthResponse,
@@ -49,13 +52,48 @@ from src.api.schemas import (
 
 # Global singleton resources initialized during app lifespan
 resources: Dict[str, Any] = {}
+security = HTTPBearer(auto_error=False)
+
+
+def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Optional[Dict[str, Any]]:
+    """Extracts and verifies session token if present; returns None if missing or invalid."""
+    if not credentials or not credentials.credentials:
+        return None
+    return verify_session_token(credentials.credentials)
+
+
+def require_auth(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Dict[str, Any]:
+    """Enforces valid user authentication via Bearer token."""
+    if not credentials or not credentials.credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required. Please provide a valid Bearer token."
+        )
+    user = verify_session_token(credentials.credentials)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired session token. Please log in again."
+        )
+    return user
+
+
+def require_admin(user: Dict[str, Any] = Depends(require_auth)) -> Dict[str, Any]:
+    """Enforces that the authenticated user possesses the 'admin' role."""
+    if user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administrative privileges required to perform this action."
+        )
+    return user
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
     Pre-warms hybrid retrieval indexes, embedding vectors, the SQLite database manager,
-    and the MaintenanceAgent to ensure zero cold-start latency for user requests.
+    and the MaintenanceAgent. Syncs all persistent approved records from SQLite into the in-memory index
+    so approved records survive application restarts.
     """
     print("[INFO] Starting Maintenance Copilot API server...")
     t0 = time.perf_counter()
@@ -64,10 +102,35 @@ async def lifespan(app: FastAPI):
     agent = MaintenanceAgent(tools=tools)
     glossary = Glossary.load_json("data/glossary.json")
 
-    # Initialize SQLite database and seed records if not yet present
+    # Initialize SQLite database and seed initial records if empty
     db = DatabaseManager()
     seeded_count = db.seed_from_jsonl("data/processed/records.jsonl")
     print(f"[INFO] SQLite database initialized at data/copilot.db (Records: {seeded_count}).")
+
+    # Reload all approved records from SQLite into tools lookup and retriever (Section 10 persistence)
+    approved_db_records = db.get_all_records()
+    synced_restart_count = 0
+    for row in approved_db_records:
+        rec_id = row["record_id"]
+        if rec_id not in tools.lookup:
+            rec = LogbookRecord(
+                record_id=rec_id,
+                problem_raw=row["problem_raw"],
+                action_raw=row["action_raw"],
+                problem_normalized=row["problem_normalized"],
+                action_normalized=row["action_normalized"],
+                metadata={
+                    "submitted_by": row.get("submitted_by"),
+                    "submitted_at": row.get("submitted_at"),
+                    "approved_by": row.get("approved_by"),
+                    "approved_at": row.get("approved_at")
+                }
+            )
+            tools.add_record(rec)
+            synced_restart_count += 1
+
+    if synced_restart_count > 0:
+        print(f"[INFO] Re-loaded {synced_restart_count} approved record(s) from SQLite into in-memory retriever.")
 
     resources["tools"] = tools
     resources["agent"] = agent
@@ -83,8 +146,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Maintenance Copilot API",
-    description="Agentic RAG over aviation maintenance logbooks with citation validation and evidence policy enforcement.",
-    version="1.0.0",
+    description="Agentic RAG over aviation maintenance logbooks with citation validation, exact identifier constraints, and role governance.",
+    version="1.1.0",
     lifespan=lifespan
 )
 
@@ -132,18 +195,21 @@ def get_agent() -> MaintenanceAgent:
 @app.post("/auth/login", response_model=LoginResponse, tags=["Auth"])
 @app.post("/api/auth/login", response_model=LoginResponse, tags=["Auth"])
 def login(req: LoginRequest):
-    """Authenticates username and password against the SQLite database."""
+    """Authenticates username and password, returning a signed cryptographic session token."""
     db = get_db()
     user = db.authenticate_user(username=req.username, password=req.password)
     if not user:
         return LoginResponse(
             success=False,
             message="Invalid username or password.",
+            token=None,
             user=None
         )
+    token = create_session_token(user["id"], user["username"], user["role"])
     return LoginResponse(
         success=True,
         message=f"Welcome back, {user['full_name']}!",
+        token=token,
         user=user
     )
 
@@ -158,19 +224,19 @@ def get_system_stats():
     return db.get_stats()
 
 
-# --- User Management (Airport Administrator) ---
+# --- User Management (Airport Administrator Only) ---
 
 @app.get("/admin/users", response_model=List[UserItem], tags=["Admin"])
 @app.get("/api/admin/users", response_model=List[UserItem], tags=["Admin"])
-def list_users(role: Optional[str] = None):
+def list_users(admin: Dict[str, Any] = Depends(require_admin)):
     """Airport Administrator views all registered technician and administrator accounts."""
     db = get_db()
-    return db.get_users(role_filter=role)
+    return db.get_users()
 
 
 @app.post("/admin/users", tags=["Admin"])
 @app.post("/api/admin/users", tags=["Admin"])
-def create_technician_account(req: CreateUserRequest):
+def create_technician_account(req: CreateUserRequest, admin: Dict[str, Any] = Depends(require_admin)):
     """Airport Administrator creates a new technician or administrator account."""
     db = get_db()
     success, msg, new_user = db.create_user(
@@ -193,7 +259,7 @@ def create_technician_account(req: CreateUserRequest):
 
 @app.delete("/admin/users/{user_id}", tags=["Admin"])
 @app.delete("/api/admin/users/{user_id}", tags=["Admin"])
-def delete_user_account(user_id: int):
+def delete_user_account(user_id: int, admin: Dict[str, Any] = Depends(require_admin)):
     """Airport Administrator deletes a technician account."""
     db = get_db()
     success, msg = db.delete_user(user_id=user_id)
@@ -254,7 +320,7 @@ def chat(request: ChatRequest):
     final_answer = agent_resp.answer
     if agent_resp.evidence_status == "insufficient":
         lower_ans = final_answer.lower()
-        if not any(w in lower_ans for w in ["insufficient", "cannot support", "no matching", "unavailable", "abstain"]):
+        if not any(w in lower_ans for w in ["insufficient", "cannot support", "no matching", "unavailable", "abstain", "no records"]):
             final_answer = format_abstention_response(
                 query=request.query,
                 reason=agent_resp.evidence_reason,
@@ -282,7 +348,7 @@ def chat(request: ChatRequest):
         is_fallback=agent_resp.is_fallback
     )
 
-    # 5. Build structured citation details for the UI
+    # 5. Build structured citation details for the UI (honest dates, None when undated)
     citations: List[CitationDetail] = []
     for rid in agent_resp.cited_record_ids:
         rec = tools.lookup.get(rid)
@@ -312,7 +378,19 @@ def chat(request: ChatRequest):
             )
         )
 
-    # 7. Audit log the query for Admin visibility
+    # 7. Build citation validation summary
+    val_res = agent_resp.citation_validation
+    citation_validation_summary = CitationValidationSummary(
+        is_valid=val_res.is_valid,
+        cited_ids=val_res.cited_ids,
+        invalid_nonexistent_ids=val_res.invalid_nonexistent_ids,
+        unretrieved_ids=val_res.unretrieved_ids,
+        invalid_quotes=val_res.invalid_quotes,
+        cross_record_attributions=getattr(val_res, "cross_record_attributions", []),
+        warning_messages=val_res.warning_messages
+    )
+
+    # 8. Audit log the query for Admin visibility
     try:
         db.log_query(
             user_name=user_name,
@@ -333,11 +411,14 @@ def chat(request: ChatRequest):
         evidence_reason=agent_resp.evidence_reason,
         cited_record_ids=agent_resp.cited_record_ids,
         citations=citations,
+        citation_validation=citation_validation_summary,
         tool_trace=tool_trace,
         total_execution_time_ms=agent_resp.trace.total_execution_time_ms,
         policy_audit=PolicyAuditSummary(
             is_compliant=policy_audit.is_compliant,
             has_safety_disclaimer=policy_audit.has_safety_disclaimer,
+            is_prescriptive_query=policy_audit.is_prescriptive_query,
+            prescriptive_boundary_applied=policy_audit.prescriptive_boundary_applied,
             conflicting_evidence_notes=policy_audit.conflicting_evidence_notes,
             potential_causation_fallacies=policy_audit.potential_causation_fallacies,
             policy_summary=policy_audit.policy_summary
@@ -351,16 +432,17 @@ def chat(request: ChatRequest):
 
 @app.post("/records/submit", response_model=FixSubmissionResponse, tags=["Submissions"])
 @app.post("/api/records/submit", response_model=FixSubmissionResponse, tags=["Submissions"])
-def submit_fix(req: FixSubmissionRequest):
+def submit_fix(req: FixSubmissionRequest, user: Dict[str, Any] = Depends(require_auth)):
     """
     Technicians submit newly observed squawks and corrective actions.
     The fix is queued in SQLite pending_records awaiting Airport Administrator approval.
     """
     db = get_db()
+    submitter = user.get("username") or req.submitted_by or "Technician"
     result = db.submit_pending_fix(
         problem_raw=req.problem_raw,
         action_raw=req.action_raw,
-        submitted_by=req.submitted_by or "Technician"
+        submitted_by=submitter
     )
     return FixSubmissionResponse(
         status="pending",
@@ -428,7 +510,10 @@ def update_glossary_from_record(record_id: str, problem_raw: str, action_raw: st
 
 @app.get("/admin/pending", response_model=List[PendingFixItem], tags=["Admin"])
 @app.get("/api/admin/pending", response_model=List[PendingFixItem], tags=["Admin"])
-def get_pending_fixes(status_filter: str = Query(default="pending", pattern="^(pending|approved|rejected|all)$")):
+def get_pending_fixes(
+    status_filter: str = Query(default="pending", pattern="^(pending|approved|rejected|all)$"),
+    admin: Dict[str, Any] = Depends(require_admin)
+):
     """Airport Administrators inspect pending or historical fix requests submitted by technicians."""
     db = get_db()
     return db.get_pending_fixes(status_filter=status_filter)
@@ -436,7 +521,11 @@ def get_pending_fixes(status_filter: str = Query(default="pending", pattern="^(p
 
 @app.post("/admin/records/{temp_id}/approve", tags=["Admin"])
 @app.post("/api/admin/records/{temp_id}/approve", tags=["Admin"])
-def approve_fix(temp_id: str, req: Optional[ApproveFixRequest] = None):
+def approve_fix(
+    temp_id: str,
+    req: Optional[ApproveFixRequest] = None,
+    admin: Dict[str, Any] = Depends(require_admin)
+):
     """
     Airport Administrator approves a technician's maintenance fix.
     Assigns the next sequential 6-digit ID (e.g. 106170), saves to SQLite `records` table,
@@ -444,7 +533,7 @@ def approve_fix(temp_id: str, req: Optional[ApproveFixRequest] = None):
     """
     db = get_db()
     tools = get_tools()
-    admin_name = req.admin_name if req and req.admin_name else "Airport Administrator"
+    admin_name = admin.get("username") or (req.admin_name if req and req.admin_name else "Airport Administrator")
 
     success, new_id, approved_data = db.approve_pending_fix(temp_id=temp_id, admin_name=admin_name)
     if not success or not approved_data:
@@ -459,7 +548,12 @@ def approve_fix(temp_id: str, req: Optional[ApproveFixRequest] = None):
         problem_raw=approved_data["problem_raw"],
         action_raw=approved_data["action_raw"],
         problem_normalized=approved_data["problem_normalized"],
-        action_normalized=approved_data["action_normalized"]
+        action_normalized=approved_data["action_normalized"],
+        metadata={
+            "submitted_by": approved_data.get("submitted_by"),
+            "approved_by": admin_name,
+            "approved_at": approved_data.get("approved_at")
+        }
     )
     tools.add_record(new_record)
 
@@ -481,10 +575,14 @@ def approve_fix(temp_id: str, req: Optional[ApproveFixRequest] = None):
 
 @app.post("/admin/records/{temp_id}/reject", tags=["Admin"])
 @app.post("/api/admin/records/{temp_id}/reject", tags=["Admin"])
-def reject_fix(temp_id: str, req: Optional[RejectFixRequest] = None):
+def reject_fix(
+    temp_id: str,
+    req: Optional[RejectFixRequest] = None,
+    admin: Dict[str, Any] = Depends(require_admin)
+):
     """Airport Administrator rejects a submitted fix with an audit reason."""
     db = get_db()
-    admin_name = req.admin_name if req and req.admin_name else "Airport Administrator"
+    admin_name = admin.get("username") or (req.admin_name if req and req.admin_name else "Airport Administrator")
     reason = req.reason if req and req.reason else "Insufficient documentation or duplicate"
 
     success = db.reject_pending_fix(temp_id=temp_id, admin_name=admin_name, reason=reason)
@@ -503,7 +601,11 @@ def reject_fix(temp_id: str, req: Optional[RejectFixRequest] = None):
 
 @app.get("/admin/audit-logs", response_model=List[QueryLogItem], tags=["Admin"])
 @app.get("/api/admin/audit-logs", response_model=List[QueryLogItem], tags=["Admin"])
-def get_audit_logs(limit: int = Query(default=50, ge=1, le=200), user_name: Optional[str] = None):
+def get_audit_logs(
+    limit: int = Query(default=50, ge=1, le=200),
+    user_name: Optional[str] = None,
+    admin: Dict[str, Any] = Depends(require_admin)
+):
     """Airport Administrator views real-time audit ledger of all queries made by technicians."""
     db = get_db()
     return db.get_query_logs(limit=limit, user_name=user_name)
@@ -511,8 +613,20 @@ def get_audit_logs(limit: int = Query(default=50, ge=1, le=200), user_name: Opti
 
 @app.get("/user/query-logs", response_model=List[QueryLogItem], tags=["User"])
 @app.get("/api/user/query-logs", response_model=List[QueryLogItem], tags=["User"])
-def get_user_query_logs(user_name: str = Query(...), limit: int = Query(default=50, ge=1, le=100)):
-    """Technicians view their own past query history and audit trail."""
+def get_user_query_logs(
+    user_name: str = Query(...),
+    limit: int = Query(default=50, ge=1, le=100),
+    current_user: Dict[str, Any] = Depends(require_auth)
+):
+    """
+    Technicians view their own past query history.
+    Normal technicians are restricted to their own user_name; admins may query any technician.
+    """
+    if current_user.get("role") != "admin" and current_user.get("username", "").lower() != user_name.strip().lower():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Technicians can only access their own query audit logs."
+        )
     db = get_db()
     return db.get_query_logs(limit=limit, user_name=user_name)
 

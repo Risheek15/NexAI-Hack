@@ -2,7 +2,8 @@
 Deterministic Evidence Assessment & Near-Duplicate Clustering Layer.
 Evaluates retrieval evidence quality without relying exclusively on LLM self-reporting
 or arbitrary rank-fusion score thresholds.
-Supports optional Aspect-Level Evidence Coverage behind the ENABLE_ASPECT_GATE flag.
+Supports four-aspect evidence coverage (Component, Symptom, Condition, Requested Information)
+as the default production gate, while allowing configurable fallback.
 """
 
 import os
@@ -12,17 +13,20 @@ from pydantic import BaseModel, Field
 
 from src.retrieval.models import RetrievalResult
 from src.agent.aspect_extractor import QueryAspects, extract_aspects
-from src.agent.aspect_coverage import check_aspect_coverage, AspectCoverageResult
+from src.agent.aspect_coverage import check_aspect_coverage, AspectCoverageResult, AspectDetail
 from src.abbreviation.models import Glossary
 
 
 EvidenceStatus = Literal["sufficient", "insufficient", "needs_clarification"]
 
-# Configuration flag for Aspect Gate (default False to preserve baseline behavior)
-ENABLE_ASPECT_GATE = os.environ.get("ENABLE_ASPECT_GATE", "false").lower() == "true"
+# Configuration flag for Aspect Gate (default True in production, can be toggled by environment)
+ENABLE_ASPECT_GATE = os.environ.get("ENABLE_ASPECT_GATE", "true").lower() == "true"
 
 _WORD_PATTERN = re.compile(r"\b[A-Za-z0-9#/'\-]+\b")
-_CYLINDER_PATTERN = re.compile(r"#\s*(\d+)")
+_CYLINDER_PATTERN = re.compile(
+    r"(?:#\s*(\d{1,2})|\b(?:cyl|cylinder)s?[\s\.\-#]*(\d{1,2})\b)",
+    re.IGNORECASE
+)
 
 # Generic single-word tokens that lack subsystem context
 _GENERIC_VAGUE_WORDS = {
@@ -42,10 +46,9 @@ _OUT_OF_DOMAIN_TERMS = {
 class AspectGateConfig(BaseModel):
     """
     Configurable parameters for aspect-level evidence coverage gating.
-    Tuned strictly on DEV queries.
     """
     enabled: bool = Field(
-        default_factory=lambda: os.environ.get("ENABLE_ASPECT_GATE", "false").lower() == "true",
+        default_factory=lambda: os.environ.get("ENABLE_ASPECT_GATE", "true").lower() == "true",
         description="Whether aspect-level evidence coverage gating is active"
     )
     min_supporting_clusters: int = Field(
@@ -77,14 +80,22 @@ class EvidenceAssessment(BaseModel):
     duplicate_clusters_count: int = Field(..., description="Number of duplicate or near-duplicate clusters identified")
     top_semantic_score: float = Field(default=0.0, description="Highest dense semantic similarity score in results")
     lexical_match_ratio: float = Field(default=0.0, description="Fraction of non-stop query terms matched in results")
-    # Aspect-level evidence coverage fields (TASK N3)
+    # Aspect-level evidence coverage fields
     aspect_coverage: Dict[str, bool] = Field(
         default_factory=dict,
         description="Per-aspect supported/unsupported boolean mapping"
     )
+    aspect_details: Dict[str, AspectDetail] = Field(
+        default_factory=dict,
+        description="Detailed per-aspect status and supporting evidence tracking"
+    )
     unsupported_aspects: List[str] = Field(
         default_factory=list,
         description="List of aspects present in query that lack supporting evidence"
+    )
+    contradicted_aspects: List[str] = Field(
+        default_factory=list,
+        description="List of aspects that have conflicting or contradicted records"
     )
     aspects: Optional[Dict[str, Optional[str]]] = Field(
         default=None,
@@ -104,10 +115,19 @@ def get_token_set(text: str) -> Set[str]:
 
 
 def extract_cylinders(text: str) -> Set[str]:
-    """Extracts cylinder number designations e.g. #1, #2, #3, #4."""
+    """Extracts cylinder number designations e.g. #1, #2, #3, #4, CYL 2, cylinder 12."""
     if not text:
         return set()
-    return set(_CYLINDER_PATTERN.findall(text))
+    cyls = set()
+    for m in _CYLINDER_PATTERN.finditer(text):
+        c1, c2 = m.groups()
+        c = c1 or c2
+        if c:
+            try:
+                cyls.add(str(int(c)))
+            except ValueError:
+                pass
+    return cyls
 
 
 def compute_token_jaccard(text1: str, text2: str) -> float:
@@ -271,6 +291,7 @@ def assess_retrieval_evidence(
 
         aspect_dict = extracted.model_dump()
         unsupported = cov_res.unsupported_aspects
+        contradicted = cov_res.contradicted_aspects
 
         # Ambiguous check: if query has no component and only a single vague symptom
         if not extracted.component and extracted.symptom and extracted.symptom.upper() in _GENERIC_VAGUE_WORDS:
@@ -282,7 +303,27 @@ def assess_retrieval_evidence(
                 top_semantic_score=round(top_semantic, 4),
                 lexical_match_ratio=round(lexical_ratio, 4),
                 aspect_coverage=cov_res.aspect_coverage,
+                aspect_details=cov_res.aspect_details,
                 unsupported_aspects=unsupported,
+                contradicted_aspects=contradicted,
+                aspects=aspect_dict,
+                aspect_support_ratio=cov_res.aspect_support_ratio
+            )
+            return assessment, deduped_results, clusters
+
+        # Contradicted aspects check (e.g. cylinder or orientation constraint violation)
+        if contradicted:
+            assessment = EvidenceAssessment(
+                status="insufficient",
+                reason=cov_res.reason,
+                unique_evidence_count=unique_count,
+                duplicate_clusters_count=duplicate_clusters_count,
+                top_semantic_score=round(top_semantic, 4),
+                lexical_match_ratio=round(lexical_ratio, 4),
+                aspect_coverage=cov_res.aspect_coverage,
+                aspect_details=cov_res.aspect_details,
+                unsupported_aspects=unsupported,
+                contradicted_aspects=contradicted,
                 aspects=aspect_dict,
                 aspect_support_ratio=cov_res.aspect_support_ratio
             )
@@ -302,7 +343,9 @@ def assess_retrieval_evidence(
                 top_semantic_score=round(top_semantic, 4),
                 lexical_match_ratio=round(lexical_ratio, 4),
                 aspect_coverage=cov_res.aspect_coverage,
+                aspect_details=cov_res.aspect_details,
                 unsupported_aspects=unsupported,
+                contradicted_aspects=contradicted,
                 aspects=aspect_dict,
                 aspect_support_ratio=cov_res.aspect_support_ratio
             )
@@ -318,13 +361,15 @@ def assess_retrieval_evidence(
             top_semantic_score=round(top_semantic, 4),
             lexical_match_ratio=round(lexical_ratio, 4),
             aspect_coverage=cov_res.aspect_coverage,
+            aspect_details=cov_res.aspect_details,
             unsupported_aspects=unsupported,
+            contradicted_aspects=contradicted,
             aspects=aspect_dict,
             aspect_support_ratio=cov_res.aspect_support_ratio
         )
         return assessment, deduped_results, clusters
 
-    # --- Baseline Gate Pathway (preserves existing behavior exactly when flag is False) ---
+    # --- Baseline Gate Pathway (when ENABLE_ASPECT_GATE is explicitly disabled) ---
     # 1. Unanswerable / out-of-domain queries produce very low lexical overlap and weak semantic similarity
     if top_semantic < 0.38 and lexical_ratio == 0.0:
         assessment = EvidenceAssessment(
@@ -337,7 +382,7 @@ def assess_retrieval_evidence(
         )
         return assessment, deduped_results, clusters
 
-    # 2. Check if evidence is sufficient
+    # 2. Check if evidence is sufficient in legacy baseline mode
     if top_semantic >= 0.35 or lexical_ratio >= 0.25 or any(r.score > 0 for r in results):
         dup_note = f" (Note: {duplicate_clusters_count} redundant record cluster(s) consolidated)" if duplicate_clusters_count > 0 else ""
         assessment = EvidenceAssessment(

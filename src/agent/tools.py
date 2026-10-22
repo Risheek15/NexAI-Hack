@@ -1,10 +1,10 @@
-import re
 """
 Application tools for the Maintenance Copilot agent:
 1. search_records(query, top_k): Hybrid retrieval, duplicate clustering, deterministic evidence gating.
 2. get_record(record_id): Fast O(1) exact lookup by genuine record ID.
 """
 
+import re
 import json
 from pathlib import Path
 from typing import List, Dict, Any, Optional
@@ -37,7 +37,7 @@ class RecordSummary(BaseModel):
     problem_normalized: str
     action_normalized: str
     is_duplicate_of: Optional[str] = None
-    date: str = "2026-10-22"
+    date: Optional[str] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -118,18 +118,19 @@ class MaintenanceTools:
         self._lookup[record.record_id] = record.model_dump()
         self.retriever.add_record(record)
 
-    def get_record_date(self, record_id: str) -> str:
-        """Retrieves recorded date for a record, defaulting to database approval date."""
+    def get_record_date(self, record_id: str) -> Optional[str]:
+        """
+        Retrieves recorded date for a record strictly if present in source metadata.
+        Never fabricates arbitrary or ingestion dates for historical logs.
+        """
         try:
             raw = self.lookup.get(record_id, {})
             meta = raw.get("metadata", {})
-            if "date" in meta:
+            if "date" in meta and meta["date"]:
                 return str(meta["date"])
-            if "approved_at" in meta:
-                return str(meta["approved_at"])[:10]
         except Exception:
             pass
-        return "2026-10-22"
+        return None
 
     def search_records(self, query: str, top_k: int = 8) -> SearchRecordsOutput:
         """
@@ -181,8 +182,12 @@ class MaintenanceTools:
                 if m != rep_id:
                     dup_to_rep[m] = rep_id
 
+        # Prioritize deduplicated distinct cluster representatives so repetitive logs don't drown unique events
+        rep_ids = {rep.record_id for rep in deduped_results}
+        ordered_results = [r for r in raw_results if r.record_id in rep_ids] + [r for r in raw_results if r.record_id not in rep_ids]
+
         record_summaries: List[RecordSummary] = []
-        for r in raw_results:
+        for r in ordered_results:
             rec_date = self.get_record_date(r.record_id)
             record_summaries.append(RecordSummary(
                 record_id=r.record_id,
@@ -201,7 +206,7 @@ class MaintenanceTools:
             query=validated.query,
             evidence_status=assessment.status,
             evidence_reason=assessment.reason,
-            total_found=len(raw_results),
+            total_found=len(ordered_results),
             unique_count=assessment.unique_evidence_count,
             records=record_summaries,
             duplicate_clusters=clusters,

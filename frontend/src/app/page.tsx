@@ -236,7 +236,7 @@ function parseAnswerText(answer: string): ParsedStructuredAnswer {
         ids: uniqueIds,
         issue: cleanIssue,
         fix: cleanFix,
-        date: cleanDate || "2026-10-22",
+        date: cleanDate && cleanDate.toLowerCase() !== "undated" ? cleanDate : undefined,
       });
     } else {
       // Intro paragraph detection

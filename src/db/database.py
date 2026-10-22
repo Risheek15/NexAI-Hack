@@ -4,11 +4,15 @@ Manages SQLite storage for:
 1. Canonical approved logbook records (seeded from CSV records).
 2. Pending maintenance fix requests submitted by technicians awaiting admin approval.
 3. Real-time audit logs of all queries executed by technicians and administrators.
-4. User accounts (Admin and Technician credentials, role-based access).
+4. User accounts (Admin and Technician credentials, role-based access, salted PBKDF2 hashing).
+5. Cryptographic session token generation and verification.
 """
 
 import os
+import time
 import json
+import base64
+import hmac
 import sqlite3
 import hashlib
 import datetime
@@ -20,11 +24,75 @@ from src.normalizer import normalize_text
 
 
 DEFAULT_DB_PATH = "data/copilot.db"
+SESSION_SECRET = os.environ.get("SESSION_SECRET", "maintenance-copilot-secure-session-key-2026")
 
 
-def _hash_password(password: str) -> str:
-    """Generates a SHA-256 hash for secure local credential verification."""
-    return hashlib.sha256(password.strip().encode("utf-8")).hexdigest()
+def _hash_password(password: str, salt: Optional[bytes] = None) -> str:
+    """
+    Generates a secure PBKDF2-HMAC-SHA256 password hash with a random 16-byte salt
+    and 100,000 iterations.
+    """
+    if salt is None:
+        salt = os.urandom(16)
+    key = hashlib.pbkdf2_hmac("sha256", password.strip().encode("utf-8"), salt, 100_000)
+    return f"pbkdf2:sha256:100000:{salt.hex()}:{key.hex()}"
+
+
+def _verify_password(stored_hash: str, password: str) -> Tuple[bool, bool]:
+    """
+    Verifies password against stored hash.
+    Supports modern PBKDF2-HMAC-SHA256 and legacy unsalted SHA-256 hashes.
+    Returns (is_valid, needs_upgrade).
+    """
+    if not stored_hash or not password:
+        return False, False
+
+    # Check PBKDF2 format: pbkdf2:sha256:iterations:salt_hex:hash_hex
+    if stored_hash.startswith("pbkdf2:sha256:"):
+        parts = stored_hash.split(":")
+        if len(parts) == 5:
+            try:
+                iters = int(parts[2])
+                salt = bytes.fromhex(parts[3])
+                expected_key = bytes.fromhex(parts[4])
+                key = hashlib.pbkdf2_hmac("sha256", password.strip().encode("utf-8"), salt, iters)
+                return hmac.compare_digest(key, expected_key), False
+            except Exception:
+                return False, False
+
+    # Legacy unsalted SHA-256 (64 hex characters)
+    legacy_hash = hashlib.sha256(password.strip().encode("utf-8")).hexdigest()
+    if hmac.compare_digest(legacy_hash, stored_hash):
+        return True, True  # Valid credentials, but needs upgrade to salted PBKDF2
+
+    return False, False
+
+
+def create_session_token(user_id: int, username: str, role: str) -> str:
+    """Creates a cryptographically signed HMAC-SHA256 session token."""
+    payload = json.dumps({"uid": user_id, "u": username, "r": role, "ts": int(time.time())})
+    b64_payload = base64.urlsafe_b64encode(payload.encode("utf-8")).decode("ascii")
+    sig = hmac.new(SESSION_SECRET.encode("utf-8"), b64_payload.encode("ascii"), hashlib.sha256).hexdigest()
+    return f"{b64_payload}.{sig}"
+
+
+def verify_session_token(token: str, max_age_seconds: int = 86400) -> Optional[Dict[str, Any]]:
+    """Verifies HMAC signature and expiration on a session token."""
+    try:
+        parts = token.split(".")
+        if len(parts) != 2:
+            return None
+        b64_payload, sig = parts
+        expected_sig = hmac.new(SESSION_SECRET.encode("utf-8"), b64_payload.encode("ascii"), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(sig, expected_sig):
+            return None
+        raw = base64.urlsafe_b64decode(b64_payload.encode("ascii")).decode("utf-8")
+        data = json.loads(raw)
+        if time.time() - data.get("ts", 0) > max_age_seconds:
+            return None
+        return {"id": data["uid"], "username": data["u"], "role": data["r"]}
+    except Exception:
+        return None
 
 
 class DatabaseManager:
@@ -120,7 +188,7 @@ class DatabaseManager:
             except Exception:
                 pass
 
-            # Seed default Admin and 3 Technician accounts if empty
+            # Seed default Admin and 3 Technician accounts if empty using salted PBKDF2
             user_count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
             if user_count == 0:
                 now = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -137,26 +205,52 @@ class DatabaseManager:
                 conn.commit()
 
     def authenticate_user(self, username: str, password: str) -> Optional[Dict[str, Any]]:
-        """Verifies username and password against the SQLite users table."""
+        """
+        Verifies username and password against the SQLite users table.
+        Transparently migrates legacy unsalted SHA-256 hashes to salted PBKDF2 upon successful verification.
+        """
         clean_user = username.strip().lower()
-        pass_hash = _hash_password(password)
 
         with self._get_connection() as conn:
             row = conn.execute(
-                "SELECT id, username, full_name, role, created_at FROM users WHERE lower(username) = ? AND password_hash = ?",
-                (clean_user, pass_hash)
+                "SELECT id, username, password_hash, full_name, role, created_at FROM users WHERE lower(username) = ?",
+                (clean_user,)
             ).fetchone()
-            if row:
-                now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            if not row:
+                return None
+
+            is_valid, needs_upgrade = _verify_password(row["password_hash"], password)
+            if not is_valid:
+                return None
+
+            now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            if needs_upgrade:
+                # Transparently upgrade legacy hash to salted PBKDF2
+                upgraded_hash = _hash_password(password)
+                try:
+                    conn.execute(
+                        "UPDATE users SET password_hash = ?, last_active = ? WHERE id = ?",
+                        (upgraded_hash, now, row["id"])
+                    )
+                    conn.commit()
+                except Exception:
+                    pass
+            else:
                 try:
                     conn.execute("UPDATE users SET last_active = ? WHERE id = ?", (now, row["id"]))
                     conn.commit()
                 except Exception:
                     pass
-                user_dict = dict(row)
-                user_dict["last_active"] = now
-                return user_dict
-            return None
+
+            user_dict = {
+                "id": row["id"],
+                "username": row["username"],
+                "full_name": row["full_name"],
+                "role": row["role"],
+                "created_at": row["created_at"],
+                "last_active": now
+            }
+            return user_dict
 
     def create_user(
         self,
@@ -167,6 +261,7 @@ class DatabaseManager:
     ) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
         """
         Airport Administrator creates a new technician or admin account.
+        Stores credentials with salted PBKDF2 hashing.
         """
         clean_user = username.strip().lower()
         if not clean_user or len(clean_user) < 3:
@@ -180,98 +275,77 @@ class DatabaseManager:
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
         with self._get_connection() as conn:
-            existing = conn.execute("SELECT id FROM users WHERE lower(username) = ?", (clean_user,)).fetchone()
-            if existing:
+            try:
+                cursor = conn.execute("""
+                    INSERT INTO users (username, password_hash, full_name, role, created_at)
+                    VALUES (?, ?, ?, ?, ?);
+                """, (clean_user, pass_hash, full_name.strip(), role.lower(), now))
+                conn.commit()
+                new_id = cursor.lastrowid
+                user_info = {
+                    "id": new_id,
+                    "username": clean_user,
+                    "full_name": full_name.strip(),
+                    "role": role.lower(),
+                    "created_at": now,
+                    "last_active": None
+                }
+                return True, "User created successfully.", user_info
+            except sqlite3.IntegrityError:
                 return False, f"Username '{clean_user}' already exists.", None
-
-            cursor = conn.execute("""
-                INSERT INTO users (username, password_hash, full_name, role, created_at)
-                VALUES (?, ?, ?, ?, ?);
-            """, (clean_user, pass_hash, full_name.strip(), role, now))
-            conn.commit()
-
-            new_user = {
-                "id": cursor.lastrowid,
-                "username": clean_user,
-                "full_name": full_name.strip(),
-                "role": role,
-                "created_at": now
-            }
-            return True, "Account created successfully.", new_user
+            except Exception as e:
+                return False, f"Failed to create user: {e}", None
 
     def get_users(self, role_filter: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Fetches all users or users filtered by role, with dynamically resolved last_active timestamp."""
-        query_base = """
-            SELECT 
-                u.id, 
-                u.username, 
-                u.full_name, 
-                u.role, 
-                u.created_at,
-                COALESCE(
-                    u.last_active,
-                    (SELECT MAX(timestamp) FROM query_logs WHERE lower(user_name) = lower(u.username) OR lower(user_name) = lower(u.full_name)),
-                    (SELECT MAX(submitted_at) FROM pending_records WHERE lower(submitted_by) = lower(u.username) OR lower(submitted_by) = lower(u.full_name))
-                ) AS last_active
-            FROM users u
-        """
+        """Returns all registered users (excluding sensitive password hashes)."""
         with self._get_connection() as conn:
             if role_filter:
                 rows = conn.execute(
-                    query_base + " WHERE u.role = ? ORDER BY u.id ASC",
+                    "SELECT id, username, full_name, role, created_at, last_active FROM users WHERE role = ? ORDER BY id ASC",
                     (role_filter,)
                 ).fetchall()
             else:
                 rows = conn.execute(
-                    query_base + " ORDER BY u.id ASC"
+                    "SELECT id, username, full_name, role, created_at, last_active FROM users ORDER BY id ASC"
                 ).fetchall()
             return [dict(r) for r in rows]
 
     def delete_user(self, user_id: int) -> Tuple[bool, str]:
-        """
-        Airport Administrator deletes a technician account.
-        Prevents deleting administrator accounts.
-        """
+        """Airport Administrator deletes a technician account."""
         with self._get_connection() as conn:
-            row = conn.execute("SELECT id, username, role FROM users WHERE id = ?", (user_id,)).fetchone()
-            if not row:
-                return False, f"User ID {user_id} not found."
-            if row["role"] == "admin":
-                return False, "Cannot delete administrator accounts."
-
-            conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+            cursor = conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
             conn.commit()
-            return True, f"Technician '{row['username']}' deleted successfully."
+            if cursor.rowcount > 0:
+                return True, "User deleted successfully."
+            return False, f"User with ID {user_id} not found."
 
     def get_stats(self) -> Dict[str, int]:
-        """Returns live system stats: record count, pending fixes, total technicians, query logs."""
+        """Calculates global administrative and airport system stats."""
         with self._get_connection() as conn:
-            rec_count = conn.execute("SELECT COUNT(*) FROM records WHERE status = 'approved'").fetchone()[0]
-            pending_count = conn.execute("SELECT COUNT(*) FROM pending_records WHERE status = 'pending'").fetchone()[0]
-            tech_count = conn.execute("SELECT COUNT(*) FROM users WHERE role = 'technician'").fetchone()[0]
-            query_count = conn.execute("SELECT COUNT(*) FROM query_logs").fetchone()[0]
+            total_records = conn.execute("SELECT COUNT(*) FROM records WHERE status = 'approved'").fetchone()[0]
+            pending_fixes = conn.execute("SELECT COUNT(*) FROM pending_records WHERE status = 'pending'").fetchone()[0]
+            total_technicians = conn.execute("SELECT COUNT(*) FROM users WHERE role = 'technician'").fetchone()[0]
+            total_queries = conn.execute("SELECT COUNT(*) FROM query_logs").fetchone()[0]
+
             return {
-                "total_records": rec_count,
-                "pending_fixes": pending_count,
-                "total_technicians": tech_count,
-                "total_queries": query_count
+                "total_records": total_records,
+                "pending_fixes": pending_fixes,
+                "total_technicians": total_technicians,
+                "total_queries": total_queries
             }
 
     def seed_from_jsonl(self, jsonl_path: str = "data/processed/records.jsonl") -> int:
-        """
-        Seeds canonical records from JSONL if records table is empty.
-        Returns count of inserted rows.
-        """
+        """Seeds canonical initial records from records.jsonl into the SQLite `records` table."""
         path = Path(jsonl_path)
-        if not path.exists():
+        if not path.is_file():
             return 0
 
+        now = datetime.datetime.now(datetime.timezone.utc).isoformat()
         with self._get_connection() as conn:
-            count = conn.execute("SELECT COUNT(*) FROM records").fetchone()[0]
-            if count > 0:
-                return count
+            existing_count = conn.execute("SELECT COUNT(*) FROM records").fetchone()[0]
+            if existing_count > 0:
+                return existing_count
 
-            now = datetime.datetime.now(datetime.timezone.utc).isoformat()
             rows_to_insert = []
             with open(path, "r", encoding="utf-8") as f:
                 for line in f:

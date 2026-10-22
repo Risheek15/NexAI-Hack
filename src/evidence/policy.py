@@ -1,7 +1,8 @@
 """
 Evidence Policy Engine.
 Audits generated responses to ensure factual grounding, identifies conflicting evidence,
-distinguishes direct historical evidence from inference, and enforces mandatory safety disclaimers.
+distinguishes direct historical evidence from inference, enforces mandatory safety disclaimers,
+and strictly prevents presenting historical technician actions as approved limits or procedures.
 """
 
 import re
@@ -14,7 +15,8 @@ _SAFETY_DISCLAIMER_KEYWORDS = [
     "not approved maintenance", "not manufacturer-approved",
     "historical logbook entries describe", "past actions taken by",
     "descriptive log entries", "not approved repair procedures",
-    "do not establish approved", "refer to applicable maintenance manual"
+    "do not establish approved", "refer to applicable maintenance manual",
+    "consult the aircraft maintenance manual", "consult applicable amm"
 ]
 
 _CAUSATION_WARNING_TERMS = [
@@ -22,16 +24,50 @@ _CAUSATION_WARNING_TERMS = [
     "will always cause", "guarantees that"
 ]
 
+_PRESCRIPTIVE_PATTERNS = [
+    re.compile(r"\b(torque\s+(?:spec|specs|specification|specifications|value|limits?))\b", re.IGNORECASE),
+    re.compile(r"\b(allowable\s+(?:limits?|wear|tolerances?))\b", re.IGNORECASE),
+    re.compile(r"\b(approved\s+(?:procedure|procedures|steps|instructions?|method))\b", re.IGNORECASE),
+    re.compile(r"\b(airworthiness\s+(?:determination|release|sign[\s-]*off|approval))\b", re.IGNORECASE),
+    re.compile(r"\b(how\s+should\s+i\s+torque|exact\s+torque)\b", re.IGNORECASE),
+]
+
+PRESCRIPTIVE_SAFETY_ADVISORY = (
+    "> [!WARNING]\n"
+    "> **Prescriptive & Airworthiness Boundary Notice**\n"
+    "> Historical maintenance records document descriptive past actions by individual technicians. "
+    "> They do **not** constitute manufacturer-approved procedures, torque specifications, or airworthiness determinations. "
+    "> For approved torque values, limits, and repair procedures, always consult the current **Aircraft Maintenance Manual (AMM)**, "
+    "> Engine Overhaul Manual, and authorized Type Certificate Data Sheets (TCDS), and have work certified by a licensed A&P/IA technician."
+)
+
 
 class PolicyAuditResult(BaseModel):
     is_compliant: bool
     has_safety_disclaimer: bool
     abstention_enforced: bool
     clarification_enforced: bool
+    is_prescriptive_query: bool = False
+    prescriptive_boundary_applied: bool = False
     potential_causation_fallacies: List[str] = Field(default_factory=list)
     conflicting_evidence_notes: List[str] = Field(default_factory=list)
     unsupported_claim_warnings: List[str] = Field(default_factory=list)
     policy_summary: str
+
+
+def is_prescriptive_or_regulatory_request(query: str) -> Tuple[bool, Optional[str]]:
+    """
+    Detects whether a query seeks approved maintenance instructions, torque specifications,
+    allowable wear limits, or airworthiness determinations that cannot be established
+    by historical logbook records alone.
+    """
+    if not query:
+        return False, None
+    for pat in _PRESCRIPTIVE_PATTERNS:
+        match = pat.search(query)
+        if match:
+            return True, match.group(0)
+    return False, None
 
 
 def check_safety_disclaimer_present(text: str) -> bool:
@@ -97,11 +133,22 @@ def audit_evidence_policy(
     conflicts = detect_conflicting_historical_actions(retrieved_records)
     unsupported_warnings = []
 
+    is_prescriptive, pres_term = is_prescriptive_or_regulatory_request(query)
+    prescriptive_boundary_applied = False
+    if is_prescriptive:
+        lower_ans = answer_text.lower()
+        if any(w in lower_ans for w in ["cannot establish", "consult", "amm", "maintenance manual", "authorized", "approved procedure"]):
+            prescriptive_boundary_applied = True
+        else:
+            unsupported_warnings.append(
+                f"Query requested prescriptive information ('{pres_term}'), but response failed to apply the authoritative AMM boundary."
+            )
+
     # 1. Abstention check
     abstention_enforced = False
     if evidence_status == "insufficient":
         lower_ans = answer_text.lower()
-        if any(w in lower_ans for w in ["insufficient", "cannot support", "no matching", "unavailable", "abstain"]):
+        if any(w in lower_ans for w in ["insufficient", "cannot support", "no matching", "unavailable", "abstain", "no records"]):
             abstention_enforced = True
         else:
             unsupported_warnings.append(
@@ -146,6 +193,8 @@ def audit_evidence_policy(
         has_safety_disclaimer=has_disclaimer,
         abstention_enforced=abstention_enforced,
         clarification_enforced=clarification_enforced,
+        is_prescriptive_query=is_prescriptive,
+        prescriptive_boundary_applied=prescriptive_boundary_applied,
         potential_causation_fallacies=causation_warnings,
         conflicting_evidence_notes=conflicts,
         unsupported_claim_warnings=unsupported_warnings,

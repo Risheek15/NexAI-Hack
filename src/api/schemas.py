@@ -18,7 +18,7 @@ class CitationDetail(BaseModel):
     problem_raw: str
     action_raw: str
     rank: Optional[int] = None
-    date: Optional[str] = "2026-10-22"
+    date: Optional[str] = None
 
 
 class ToolTraceItem(BaseModel):
@@ -32,9 +32,21 @@ class ToolTraceItem(BaseModel):
 class PolicyAuditSummary(BaseModel):
     is_compliant: bool
     has_safety_disclaimer: bool
+    is_prescriptive_query: bool = False
+    prescriptive_boundary_applied: bool = False
     conflicting_evidence_notes: List[str] = Field(default_factory=list)
     potential_causation_fallacies: List[str] = Field(default_factory=list)
     policy_summary: str
+
+
+class CitationValidationSummary(BaseModel):
+    is_valid: bool = True
+    cited_ids: List[str] = Field(default_factory=list)
+    invalid_nonexistent_ids: List[str] = Field(default_factory=list)
+    unretrieved_ids: List[str] = Field(default_factory=list)
+    invalid_quotes: List[str] = Field(default_factory=list)
+    cross_record_attributions: List[str] = Field(default_factory=list)
+    warning_messages: List[str] = Field(default_factory=list)
 
 
 class ChatResponse(BaseModel):
@@ -44,6 +56,7 @@ class ChatResponse(BaseModel):
     evidence_reason: str
     cited_record_ids: List[str] = Field(default_factory=list)
     citations: List[CitationDetail] = Field(default_factory=list)
+    citation_validation: Optional[CitationValidationSummary] = None
     tool_trace: List[ToolTraceItem] = Field(default_factory=list)
     total_execution_time_ms: float
     policy_audit: PolicyAuditSummary
@@ -80,6 +93,7 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     success: bool
     message: str
+    token: Optional[str] = None
     user: Optional[Dict[str, Any]] = None
 
 
