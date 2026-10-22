@@ -16,6 +16,7 @@ __pycache__/
 htmlcov/
 
 # Processed embeddings & temporary files
+data/cache/
 data/processed/embeddings.npy
 data/processed/bm25_base.pkl
 data/processed/bm25_expanded.pkl
