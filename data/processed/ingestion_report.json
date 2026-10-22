@@ -1,0 +1,15 @@
+{
+  "source_file": "C:\\Users\\r1tpr\\.gemini\\antigravity\\scratch\\maintenance-copilot\\data\\raw\\logbooks.csv",
+  "output_file": "C:\\Users\\r1tpr\\.gemini\\antigravity\\scratch\\maintenance-copilot\\data\\processed\\records.jsonl",
+  "source_sha256": "a70daa27ba9c44a68617d69be1352be7fde003145ca142cbe0b7b51e197c6c3a",
+  "total_raw_rows": 6169,
+  "valid_records_ingested": 6169,
+  "duplicate_ids_count": 0,
+  "malformed_rows_count": 0,
+  "timestamp_utc": "2026-10-22T04:29:30.701632+00:00",
+  "fields_detected": [
+    "IDENT",
+    "PROBLEM",
+    "ACTION"
+  ]
+}

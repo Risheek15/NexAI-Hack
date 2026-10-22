@@ -1,0 +1,32 @@
+# Secrets & Environment variables
+.env
+*.env
+!.env.example
+
+# Python cache & virtual environments
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Processed embeddings & temporary files
+data/processed/embeddings.npy
+data/processed/bm25_base.pkl
+data/processed/bm25_expanded.pkl
+data/processed/bm25_index.pkl
+*.npy
+*.pkl
+
+# Node.js & Next.js
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+frontend/out/
+*.log

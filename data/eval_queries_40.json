@@ -1,0 +1,322 @@
+[
+  {
+    "query_id": "DEV_01_EXACT_TECH",
+    "split": "dev",
+    "query": "removed and replaced fuel servo",
+    "category": "exact_technical_term",
+    "target_record_ids": ["100002"],
+    "description": "Exact technical component replacement"
+  },
+  {
+    "query_id": "DEV_02_EXACT_TECH",
+    "split": "dev",
+    "query": "oil dipstick oil stick is loose",
+    "category": "exact_technical_term",
+    "target_record_ids": ["100044"],
+    "description": "Exact component condition"
+  },
+  {
+    "query_id": "DEV_03_EXACT_TECH",
+    "split": "dev",
+    "query": "engine cowl Dzus fasteners need retainers",
+    "category": "exact_technical_term",
+    "target_record_ids": ["102030"],
+    "description": "Exact brand hardware fastener"
+  },
+  {
+    "query_id": "DEV_04_EXACT_TECH",
+    "split": "dev",
+    "query": "stop drilled crack on L/H rear engine baffle",
+    "category": "exact_technical_term",
+    "target_record_ids": ["100012", "100576", "100802", "100818"],
+    "description": "Exact maintenance corrective repair action"
+  },
+  {
+    "query_id": "DEV_05_ABBREV_EXPANDED",
+    "split": "dev",
+    "query": "left-hand rear engine baffle cracked",
+    "category": "abbreviation_expanded",
+    "target_record_ids": ["100012", "100576", "100802", "100818"],
+    "description": "Expanded query for L/H abbreviation"
+  },
+  {
+    "query_id": "DEV_06_ABBREV_EXPANDED",
+    "split": "dev",
+    "query": "right-hand magneto blast tube fell off",
+    "category": "abbreviation_expanded",
+    "target_record_ids": ["100027"],
+    "description": "Expanded query for R/H MAG"
+  },
+  {
+    "query_id": "DEV_07_ABBREV_EXPANDED",
+    "split": "dev",
+    "query": "cylinder head temperature probe fluctuating",
+    "category": "abbreviation_expanded",
+    "target_record_ids": ["100135", "104459", "104860"],
+    "description": "Expanded query for CHT probe"
+  },
+  {
+    "query_id": "DEV_08_ABBREV_EXPANDED",
+    "split": "dev",
+    "query": "service instruction 388C reamed exhaust valves on all cylinders",
+    "category": "abbreviation_expanded",
+    "target_record_ids": ["100200"],
+    "description": "Expanded query for SI 388C service instruction"
+  },
+  {
+    "query_id": "DEV_09_ABBREV_EXPANDED",
+    "split": "dev",
+    "query": "engine overspeed revolutions per minute check",
+    "category": "abbreviation_expanded",
+    "target_record_ids": ["100149", "100150", "100151", "100152", "101078", "101079"],
+    "description": "Expanded query for RPM overspeed"
+  },
+  {
+    "query_id": "DEV_10_NOISY_MISSPELLING",
+    "split": "dev",
+    "query": "rockr box covr scrws lose",
+    "category": "misspelling_noisy",
+    "target_record_ids": ["100006", "100017", "100023", "100088", "100095", "100144", "100218"],
+    "description": "Noisy typo query for rocker box cover screws loose"
+  },
+  {
+    "query_id": "DEV_11_NOISY_MISSPELLING",
+    "split": "dev",
+    "query": "intak gasget leeking #2",
+    "category": "misspelling_noisy",
+    "target_record_ids": ["100009", "100068", "100081", "100086", "100113", "100122", "100128"],
+    "description": "Noisy typo query for #2 intake gasket leaking"
+  },
+  {
+    "query_id": "DEV_12_NOISY_MISSPELLING",
+    "split": "dev",
+    "query": "stck exaust valv cylnder #3",
+    "category": "misspelling_noisy",
+    "target_record_ids": ["100376", "100377", "100384", "100385", "100696", "105423"],
+    "description": "Noisy typo query for stuck exhaust valve on #3 cylinder"
+  },
+  {
+    "query_id": "DEV_13_PARAPHRASED",
+    "split": "dev",
+    "query": "engine was running rough and vibrating heavily after departure",
+    "category": "paraphrased",
+    "target_record_ids": ["100004", "100076", "100077", "100130"],
+    "description": "Paraphrased report of rough running engine and vibration"
+  },
+  {
+    "query_id": "DEV_14_PARAPHRASED",
+    "split": "dev",
+    "query": "shutting down the engine when idle override is engaged",
+    "category": "paraphrased",
+    "target_record_ids": ["100001", "100002", "100003"],
+    "description": "Paraphrased question about engine idle override kill"
+  },
+  {
+    "query_id": "DEV_15_PARAPHRASED",
+    "split": "dev",
+    "query": "push rod tube shroud seal oil leak at crankcase",
+    "category": "paraphrased",
+    "target_record_ids": ["100370", "100386", "100452", "100650", "101100"],
+    "description": "Paraphrased question for push rod tube seal leak"
+  },
+  {
+    "query_id": "DEV_16_UNANSWERABLE",
+    "split": "dev",
+    "query": "autopilot altitude hold disconnect and pitch trim runaway",
+    "category": "unanswerable",
+    "target_record_ids": [],
+    "description": "Unanswerable: avionics autopilot not in engine dataset"
+  },
+  {
+    "query_id": "DEV_17_UNANSWERABLE",
+    "split": "dev",
+    "query": "cabin oxygen mask deployment failure above 15000 feet",
+    "category": "unanswerable",
+    "target_record_ids": [],
+    "description": "Unanswerable: passenger oxygen system not in engine dataset"
+  },
+  {
+    "query_id": "DEV_18_UNANSWERABLE",
+    "split": "dev",
+    "query": "landing gear hydraulic retraction actuator overhaul",
+    "category": "unanswerable",
+    "target_record_ids": [],
+    "description": "Unanswerable: landing gear hydraulics not in engine dataset"
+  },
+  {
+    "query_id": "DEV_19_UNANSWERABLE",
+    "split": "dev",
+    "query": "auxiliary power unit APU generator bearing fire",
+    "category": "unanswerable",
+    "target_record_ids": [],
+    "description": "Unanswerable: APU generator not in reciprocating piston engine dataset"
+  },
+  {
+    "query_id": "DEV_20_UNANSWERABLE",
+    "split": "dev",
+    "query": "thrust reverser cascade vane unlock in flight",
+    "category": "unanswerable",
+    "target_record_ids": [],
+    "description": "Unanswerable: jet thrust reverser not in piston engine logbooks"
+  },
+  {
+    "query_id": "TEST_01_EXACT_TECH",
+    "split": "test",
+    "query": "vacuum tube and oil cooler line rubbing together Adel clamp",
+    "category": "exact_technical_term",
+    "target_record_ids": ["100065"],
+    "description": "Adel clamp repositioned on vacuum line and oil cooler"
+  },
+  {
+    "query_id": "TEST_02_EXACT_TECH",
+    "split": "test",
+    "query": "fuel pressure transducer ground path cleaned",
+    "category": "exact_technical_term",
+    "target_record_ids": ["100067"],
+    "description": "Fuel pressure jumping into red transducer clean"
+  },
+  {
+    "query_id": "TEST_03_EXACT_TECH",
+    "split": "test",
+    "query": "starter ring gear damaged teeth dressed or replaced",
+    "category": "exact_technical_term",
+    "target_record_ids": ["100274", "100309", "100929"],
+    "description": "Ring gear missing/damaged teeth maintenance"
+  },
+  {
+    "query_id": "TEST_04_EXACT_TECH",
+    "split": "test",
+    "query": "engine removed to facilitate firewall repair by Odegaard Wings",
+    "category": "exact_technical_term",
+    "target_record_ids": ["100186", "100253", "100254"],
+    "description": "Odegaard Wings firewall structural repair"
+  },
+  {
+    "query_id": "TEST_05_EXACT_TECH",
+    "split": "test",
+    "query": "dirty sniffler valves cleaned",
+    "category": "exact_technical_term",
+    "target_record_ids": ["101087", "102430", "102715", "102821"],
+    "description": "Cleaning sniffler valves"
+  },
+  {
+    "query_id": "TEST_06_ABBREV_EXPANDED",
+    "split": "test",
+    "query": "alternator cooling hose chafing against alternator battery cable",
+    "category": "abbreviation_expanded",
+    "target_record_ids": ["100637"],
+    "description": "ALT cooling hose and BAT cable"
+  },
+  {
+    "query_id": "TEST_07_ABBREV_EXPANDED",
+    "split": "test",
+    "query": "cylinder intake or exhaust valve staked to restore compression",
+    "category": "abbreviation_expanded",
+    "target_record_ids": ["100116", "100473", "100914", "100915", "101083"],
+    "description": "Staking valve procedure for low compression"
+  },
+  {
+    "query_id": "TEST_08_ABBREV_EXPANDED",
+    "split": "test",
+    "query": "spark plug access hole button plugs worn on engine cooling baffle",
+    "category": "abbreviation_expanded",
+    "target_record_ids": ["100156", "100195", "100311", "100320", "100346"],
+    "description": "Engine baffle snap/button plugs replacement"
+  },
+  {
+    "query_id": "TEST_09_ABBREV_EXPANDED",
+    "split": "test",
+    "query": "front crankshaft oil seal leaking replaced",
+    "category": "abbreviation_expanded",
+    "target_record_ids": ["101904", "101905", "101906", "103175", "103176"],
+    "description": "Front crankshaft seal replacement"
+  },
+  {
+    "query_id": "TEST_10_ABBREV_EXPANDED",
+    "split": "test",
+    "query": "torquemeter pressure and vent hoses replacement",
+    "category": "abbreviation_expanded",
+    "target_record_ids": ["100411", "100412", "100413", "100414", "100415", "100416"],
+    "description": "Torquemeter hose maintenance on twin engine"
+  },
+  {
+    "query_id": "TEST_11_NOISY_MISSPELLING",
+    "split": "test",
+    "query": "throtle linkag dog bone lose bering",
+    "category": "misspelling_noisy",
+    "target_record_ids": ["100603"],
+    "description": "Typo query for throttle linkage dog bone loose bearing"
+  },
+  {
+    "query_id": "TEST_12_NOISY_MISSPELLING",
+    "split": "test",
+    "query": "low compreshun 20/80 on cilinder 4",
+    "category": "misspelling_noisy",
+    "target_record_ids": ["101231", "101232", "104240"],
+    "description": "Typo query for low compression on cylinder 4"
+  },
+  {
+    "query_id": "TEST_13_PARAPHRASED",
+    "split": "test",
+    "query": "re-swaged intake pipe at oil sump connection",
+    "category": "paraphrased",
+    "target_record_ids": ["101308", "101327", "101496", "101650", "101690", "101727"],
+    "description": "Reswaging swaged intake pipe connection to sump"
+  },
+  {
+    "query_id": "TEST_14_PARAPHRASED",
+    "split": "test",
+    "query": "propeller low pitch stop adjusted after engine run",
+    "category": "paraphrased",
+    "target_record_ids": ["102959"],
+    "description": "Adjusting prop low pitch stop"
+  },
+  {
+    "query_id": "TEST_15_PARAPHRASED",
+    "split": "test",
+    "query": "cylinder 3 dry tappet clearance check with shorter push rod",
+    "category": "paraphrased",
+    "target_record_ids": ["100040", "101459"],
+    "description": "Checking dry tappet clearance with shorter push rod"
+  },
+  {
+    "query_id": "TEST_16_UNANSWERABLE",
+    "split": "test",
+    "query": "trailing edge wing flap asymmetry lockout sensor reset",
+    "category": "unanswerable",
+    "target_record_ids": [],
+    "description": "Unanswerable: wing flap asymmetry not in engine logbooks"
+  },
+  {
+    "query_id": "TEST_17_UNANSWERABLE",
+    "split": "test",
+    "query": "bleed air precooler temperature control valve malfunction",
+    "category": "unanswerable",
+    "target_record_ids": [],
+    "description": "Unanswerable: pneumatic precooler control valve not in piston engine logbooks"
+  },
+  {
+    "query_id": "TEST_18_UNANSWERABLE",
+    "split": "test",
+    "query": "cockpit voice recorder underwater locator beacon battery replacement",
+    "category": "unanswerable",
+    "target_record_ids": [],
+    "description": "Unanswerable: CVR ULB battery not in engine logbooks"
+  },
+  {
+    "query_id": "TEST_19_UNANSWERABLE",
+    "split": "test",
+    "query": "engine fire extinguishing squib bottle discharge test",
+    "category": "unanswerable",
+    "target_record_ids": [],
+    "description": "Unanswerable: fire bottle squib discharge test"
+  },
+  {
+    "query_id": "TEST_20_UNANSWERABLE",
+    "split": "test",
+    "query": "emergency evacuation slide deployment bottle hydrostatic inspection",
+    "category": "unanswerable",
+    "target_record_ids": [],
+    "description": "Unanswerable: cabin emergency slide not in engine logbooks"
+  }
+]

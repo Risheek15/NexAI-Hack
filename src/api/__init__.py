@@ -1,0 +1,1 @@
+"""FastAPI Backend application for Maintenance Copilot."""
