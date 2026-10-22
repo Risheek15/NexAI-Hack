@@ -81,6 +81,26 @@ class SemanticRetriever:
         with open(self.ids_path, "w", encoding="utf-8") as f:
             json.dump(self.record_ids, f)
 
+    def add_record(self, record: LogbookRecord) -> None:
+        """Dynamically encodes and indexes a newly approved record into vector embeddings."""
+        if record.record_id in self.records_by_id:
+            return
+        self.records.append(record)
+        self.records_by_id[record.record_id] = record
+        self.record_ids.append(record.record_id)
+
+        # Encode single record text
+        new_emb = self.model.encode(
+            [record.combined_normalized],
+            show_progress_bar=False,
+            normalize_embeddings=True
+        )
+        new_emb = np.asarray(new_emb, dtype=np.float32)
+        if self.embeddings is not None:
+            self.embeddings = np.vstack([self.embeddings, new_emb])
+        else:
+            self.embeddings = new_emb
+
     def search(self, query: str, top_k: int = 5) -> List[RetrievalResult]:
         """
         Encodes query and computes cosine similarities against all documents.

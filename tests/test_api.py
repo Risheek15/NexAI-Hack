@@ -24,7 +24,7 @@ class TestHealthAndGlossaryEndpoints:
         assert resp.status_code == 200
         data = resp.json()
         assert data["status"] == "healthy"
-        assert data["total_records"] == 6169
+        assert data["total_records"] >= 6169
         assert data["total_glossary_terms"] >= 20
         assert "model_name" in data
         assert "api_key_configured" in data
