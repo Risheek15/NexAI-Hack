@@ -1,0 +1,6 @@
+{
+  "component": "airspeed indicator pitot static tolerance per FAR 43 appendix E",
+  "symptom": "leak",
+  "condition": null,
+  "requested_info": "check"
+}

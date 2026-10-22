@@ -2,16 +2,24 @@
 Deterministic Evidence Assessment & Near-Duplicate Clustering Layer.
 Evaluates retrieval evidence quality without relying exclusively on LLM self-reporting
 or arbitrary rank-fusion score thresholds.
+Supports optional Aspect-Level Evidence Coverage behind the ENABLE_ASPECT_GATE flag.
 """
 
+import os
 import re
-from typing import List, Tuple, Dict, Set, Literal
+from typing import List, Tuple, Dict, Set, Literal, Optional
 from pydantic import BaseModel, Field
 
 from src.retrieval.models import RetrievalResult
+from src.agent.aspect_extractor import QueryAspects, extract_aspects
+from src.agent.aspect_coverage import check_aspect_coverage, AspectCoverageResult
+from src.abbreviation.models import Glossary
 
 
 EvidenceStatus = Literal["sufficient", "insufficient", "needs_clarification"]
+
+# Configuration flag for Aspect Gate (default False to preserve baseline behavior)
+ENABLE_ASPECT_GATE = os.environ.get("ENABLE_ASPECT_GATE", "false").lower() == "true"
 
 _WORD_PATTERN = re.compile(r"\b[A-Za-z0-9#/'\-]+\b")
 _CYLINDER_PATTERN = re.compile(r"#\s*(\d+)")
@@ -31,9 +39,37 @@ _OUT_OF_DOMAIN_TERMS = {
 }
 
 
+class AspectGateConfig(BaseModel):
+    """
+    Configurable parameters for aspect-level evidence coverage gating.
+    Tuned strictly on DEV queries.
+    """
+    enabled: bool = Field(
+        default_factory=lambda: os.environ.get("ENABLE_ASPECT_GATE", "false").lower() == "true",
+        description="Whether aspect-level evidence coverage gating is active"
+    )
+    min_supporting_clusters: int = Field(
+        default=1,
+        description="Minimum distinct duplicate clusters required to support an aspect"
+    )
+    fuzzy_similarity_threshold: float = Field(
+        default=0.80,
+        description="Fuzzy string matching ratio for noisy/misspelled terms"
+    )
+    critical_aspects: List[str] = Field(
+        default_factory=lambda: ["component", "symptom"],
+        description="Aspects that must be supported to declare sufficiency"
+    )
+    abstain_on_unsupported_critical: bool = Field(
+        default=True,
+        description="Whether to mark status as insufficient if any critical aspect lacks support"
+    )
+
+
 class EvidenceAssessment(BaseModel):
     """
     Structured outcome of the deterministic evidence evaluation.
+    Gains per-aspect coverage, unsupported aspects, and explanatory reason.
     """
     status: EvidenceStatus = Field(..., description="'sufficient', 'insufficient', or 'needs_clarification'")
     reason: str = Field(..., description="Deterministic rationale for the assigned evidence status")
@@ -41,6 +77,23 @@ class EvidenceAssessment(BaseModel):
     duplicate_clusters_count: int = Field(..., description="Number of duplicate or near-duplicate clusters identified")
     top_semantic_score: float = Field(default=0.0, description="Highest dense semantic similarity score in results")
     lexical_match_ratio: float = Field(default=0.0, description="Fraction of non-stop query terms matched in results")
+    # Aspect-level evidence coverage fields (TASK N3)
+    aspect_coverage: Dict[str, bool] = Field(
+        default_factory=dict,
+        description="Per-aspect supported/unsupported boolean mapping"
+    )
+    unsupported_aspects: List[str] = Field(
+        default_factory=list,
+        description="List of aspects present in query that lack supporting evidence"
+    )
+    aspects: Optional[Dict[str, Optional[str]]] = Field(
+        default=None,
+        description="Extracted structured query aspects"
+    )
+    aspect_support_ratio: float = Field(
+        default=1.0,
+        description="Fraction of present query aspects supported by retrieved clusters"
+    )
 
 
 def get_token_set(text: str) -> Set[str]:
@@ -112,11 +165,19 @@ def cluster_near_duplicates(
 
 def assess_retrieval_evidence(
     query: str,
-    results: List[RetrievalResult]
+    results: List[RetrievalResult],
+    enable_aspect_gate: Optional[bool] = None,
+    config: Optional[AspectGateConfig] = None,
+    glossary: Optional[Glossary] = None,
+    aspects: Optional[QueryAspects] = None
 ) -> Tuple[EvidenceAssessment, List[RetrievalResult], Dict[str, List[str]]]:
     """
     Deterministically evaluates whether retrieved evidence is sufficient, insufficient,
     or needs clarification.
+
+    When enable_aspect_gate is True, performs fine-grained aspect extraction and
+    verifies coverage of component, symptom, condition, and requested information
+    across distinct duplicate clusters.
     """
     clean_query = query.strip()
     if not clean_query:
@@ -142,7 +203,8 @@ def assess_retrieval_evidence(
                 unique_evidence_count=0,
                 duplicate_clusters_count=0,
                 top_semantic_score=0.0,
-                lexical_match_ratio=0.0
+                lexical_match_ratio=0.0,
+                unsupported_aspects=["component"]
             )
             return assessment, [], {}
 
@@ -165,7 +227,8 @@ def assess_retrieval_evidence(
             unique_evidence_count=0,
             duplicate_clusters_count=0,
             top_semantic_score=0.0,
-            lexical_match_ratio=0.0
+            lexical_match_ratio=0.0,
+            unsupported_aspects=["component", "symptom"]
         )
         return assessment, [], {}
 
@@ -189,7 +252,79 @@ def assess_retrieval_evidence(
         if sim > top_semantic:
             top_semantic = float(sim)
 
-    # Decision logic calibrated against evaluation dataset:
+    # Determine whether aspect-level gate is active
+    gate_cfg = config or AspectGateConfig()
+    use_aspects = enable_aspect_gate if enable_aspect_gate is not None else gate_cfg.enabled
+
+    # --- Aspect-Level Evidence Coverage Pathway ---
+    if use_aspects:
+        extracted = aspects if aspects is not None else extract_aspects(clean_query)
+        cov_res = check_aspect_coverage(
+            query=clean_query,
+            aspects=extracted,
+            deduped_results=deduped_results,
+            clusters=clusters,
+            glossary=glossary,
+            min_supporting_clusters=gate_cfg.min_supporting_clusters,
+            fuzzy_threshold=gate_cfg.fuzzy_similarity_threshold
+        )
+
+        aspect_dict = extracted.model_dump()
+        unsupported = cov_res.unsupported_aspects
+
+        # Ambiguous check: if query has no component and only a single vague symptom
+        if not extracted.component and extracted.symptom and extracted.symptom.upper() in _GENERIC_VAGUE_WORDS:
+            assessment = EvidenceAssessment(
+                status="needs_clarification",
+                reason=f"The query '{clean_query}' lacks component context. Please specify which component or cylinder is experiencing {extracted.symptom}.",
+                unique_evidence_count=unique_count,
+                duplicate_clusters_count=duplicate_clusters_count,
+                top_semantic_score=round(top_semantic, 4),
+                lexical_match_ratio=round(lexical_ratio, 4),
+                aspect_coverage=cov_res.aspect_coverage,
+                unsupported_aspects=unsupported,
+                aspects=aspect_dict,
+                aspect_support_ratio=cov_res.aspect_support_ratio
+            )
+            return assessment, deduped_results, clusters
+
+        # Check critical aspects (component, symptom)
+        has_unsupported_critical = any(
+            crit in unsupported for crit in gate_cfg.critical_aspects if getattr(extracted, crit)
+        )
+
+        if gate_cfg.abstain_on_unsupported_critical and has_unsupported_critical:
+            assessment = EvidenceAssessment(
+                status="insufficient",
+                reason=cov_res.reason,
+                unique_evidence_count=unique_count,
+                duplicate_clusters_count=duplicate_clusters_count,
+                top_semantic_score=round(top_semantic, 4),
+                lexical_match_ratio=round(lexical_ratio, 4),
+                aspect_coverage=cov_res.aspect_coverage,
+                unsupported_aspects=unsupported,
+                aspects=aspect_dict,
+                aspect_support_ratio=cov_res.aspect_support_ratio
+            )
+            return assessment, deduped_results, clusters
+
+        # All critical aspects supported: sufficient evidence
+        dup_note = f" (Note: {duplicate_clusters_count} redundant record cluster(s) consolidated)" if duplicate_clusters_count > 0 else ""
+        assessment = EvidenceAssessment(
+            status="sufficient",
+            reason=f"Found {unique_count} distinct historical maintenance record(s) matching the reported condition{dup_note}. {cov_res.reason}",
+            unique_evidence_count=unique_count,
+            duplicate_clusters_count=duplicate_clusters_count,
+            top_semantic_score=round(top_semantic, 4),
+            lexical_match_ratio=round(lexical_ratio, 4),
+            aspect_coverage=cov_res.aspect_coverage,
+            unsupported_aspects=unsupported,
+            aspects=aspect_dict,
+            aspect_support_ratio=cov_res.aspect_support_ratio
+        )
+        return assessment, deduped_results, clusters
+
+    # --- Baseline Gate Pathway (preserves existing behavior exactly when flag is False) ---
     # 1. Unanswerable / out-of-domain queries produce very low lexical overlap and weak semantic similarity
     if top_semantic < 0.38 and lexical_ratio == 0.0:
         assessment = EvidenceAssessment(

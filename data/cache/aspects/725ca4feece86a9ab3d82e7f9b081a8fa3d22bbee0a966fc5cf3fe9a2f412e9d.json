@@ -1,0 +1,6 @@
+{
+  "component": "autopilot altitude hold",
+  "symptom": "disconnect and pitch trim runaway",
+  "condition": null,
+  "requested_info": null
+}

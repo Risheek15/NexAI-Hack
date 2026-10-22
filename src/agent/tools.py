@@ -47,6 +47,8 @@ class SearchRecordsOutput(BaseModel):
     unique_count: int
     records: List[RecordSummary]
     duplicate_clusters: Dict[str, List[str]] = Field(default_factory=dict)
+    aspect_coverage: Dict[str, bool] = Field(default_factory=dict)
+    unsupported_aspects: List[str] = Field(default_factory=list)
 
 
 class GetRecordInput(BaseModel):
@@ -161,7 +163,9 @@ class MaintenanceTools:
             total_found=len(raw_results),
             unique_count=assessment.unique_evidence_count,
             records=record_summaries,
-            duplicate_clusters=clusters
+            duplicate_clusters=clusters,
+            aspect_coverage=assessment.aspect_coverage,
+            unsupported_aspects=assessment.unsupported_aspects
         )
 
     def get_record(self, record_id: str) -> GetRecordOutput:

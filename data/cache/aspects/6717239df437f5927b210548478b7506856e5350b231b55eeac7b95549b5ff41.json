@@ -1,0 +1,6 @@
+{
+  "component": "engine",
+  "symptom": "shutting down",
+  "condition": "when idle override is engaged",
+  "requested_info": null
+}
