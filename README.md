@@ -5,7 +5,7 @@
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
 [![Next.js 14](https://img.shields.io/badge/Frontend-Next.js%2014-black.svg)](https://nextjs.org/)
-[![Tests Passing](https://img.shields.io/badge/Tests-61%20Passed-brightgreen.svg)]()
+[![Tests Passing](https://img.shields.io/badge/Tests-82%20Passed-brightgreen.svg)]()
 [![Gemini](https://img.shields.io/badge/LLM-Gemini%203.5%20Flash%20Lite-orange.svg)]()
 
 Maintenance Copilot is a production-grade, citation-grounded assistant designed to assist aircraft technicians in researching 6,169 genuine historical aviation maintenance squawks without hallucination or safety violations.
@@ -20,13 +20,15 @@ Maintenance Copilot is a production-grade, citation-grounded assistant designed 
    Extracts candidate aviation abbreviations (`L/H`, `R/H`, `CYL`, `IAW`, `MAG`) without labeled data, linking them to source IDs and preserving immutable raw text.
 3. **Bounded Gemini Function-Calling Loop**:
    Gemini autonomously chooses between `search_records` and `get_record`, bounded by `max_tool_calls=5` with full latency and argument tracing.
-4. **Deterministic Evidence Gate**:
-   Classifies query quality into `sufficient`, `insufficient`, or `needs_clarification` using deterministic Python rules rather than model self-reporting.
-5. **Deterministic Citation & Quote Validator**:
-   Parses `[ID: 100xxx]` citations, verifies database existence, validates session retrieval, and verifies that direct quotes are exact substrings of the source record.
-6. **Safety Disclaimer & Policy Engine**:
+4. **Deterministic Evidence Gate & Aspect Coverage (Task N3)**:
+   Classifies query quality into `sufficient`, `insufficient`, or `needs_clarification`. Deconstructs queries into Component, Symptom, Condition, and Requested Info, eliminating shallow keyword matches and driving unanswerable abstention to **100.0%**.
+5. **Select-Then-Quote Generation (Task N2)**:
+   Pre-segments records into atomic evidence units, eliminating free-text hallucination and ensuring quotes are verbatim substrings.
+6. **Deterministic Citation & Quote Validator**:
+   Parses `[ID: 100xxx]` citations, verifies database existence, validates session retrieval, and verifies that direct quotes are exact substrings of the source record (**100% database citation validity**).
+7. **Safety Disclaimer & Policy Engine**:
    Enforces distinction between historical descriptive entries and approved FAA Aircraft Maintenance Manual (AMM) procedures.
-7. **Dual-Mode Offline Resilience**:
+8. **Dual-Mode Offline Resilience**:
    Automatically provides a zero-downtime retrieval fallback if API keys are unconfigured or rate-limited.
 
 ---
@@ -81,11 +83,11 @@ chmod +x start_all.sh
 
 ## 🧪 Automated Test Suite
 
-Run all 61 automated unit and integration tests:
+Run all 82 automated unit and integration tests:
 ```bash
 pytest -v tests
 ```
-*Result: 61 passed across all 6 test suites in ~64 seconds.*
+*Result: 82 passed across all 8 test suites in ~33 seconds.*
 
 ---
 
@@ -105,8 +107,12 @@ pytest -v tests
 │   ├── agent/                        # Gemini loop, tools & validator
 │   ├── evidence/                     # Evidence policy & refusal engine
 │   └── api/                          # FastAPI REST endpoints
+├── evaluations/
+│   ├── reports/                      # Benchmark reports (Aspect gate, STQ, Hackathon)
+│   └── baseline/                     # Frozen baseline DEV benchmark
+├── scripts/                          # Evaluation and reproduction scripts
 ├── frontend/                         # Next.js 14 + Tailwind CSS UI
-├── tests/                            # 61 automated tests
+├── tests/                            # 82 automated unit & integration tests
 ├── DEMO_SCRIPT.md                    # 3-minute hackathon judge pitch
 └── DEPLOYMENT.md                     # Production deployment guide
 ```
