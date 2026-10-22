@@ -289,11 +289,13 @@ def chat(request: ChatRequest):
         if rec:
             p_raw = rec.get("problem_raw", "") if isinstance(rec, dict) else getattr(rec, "problem_raw", "")
             a_raw = rec.get("action_raw", "") if isinstance(rec, dict) else getattr(rec, "action_raw", "")
+            rec_date = tools.get_record_date(rid)
             citations.append(
                 CitationDetail(
                     record_id=rid,
                     problem_raw=p_raw,
-                    action_raw=a_raw
+                    action_raw=a_raw,
+                    date=rec_date
                 )
             )
 

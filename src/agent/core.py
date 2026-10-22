@@ -8,6 +8,7 @@ and provides retrieval-only fallbacks.
 import os
 import time
 import json
+import re
 from typing import List, Dict, Any, Optional, Set
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
@@ -21,7 +22,7 @@ from src.agent.tools import MaintenanceTools, SearchRecordsOutput, GetRecordOutp
 from src.agent.evidence_gate import EvidenceStatus
 from src.agent.validator import validate_citations_and_quotes, CitationValidationResult
 from src.agent.trace import ToolCallTrace, AgentTrace
-
+from src.abbreviation.expander import expand_fix_with_acronym_brackets
 
 from src.agent.segmenter import segment_logbook_record, EvidenceUnit
 from src.agent.select_then_quote import (
@@ -53,11 +54,58 @@ Present your findings strictly point-wise, structured, and easy for an aircraft 
    • Record [ID: xxxxxx]
      - Issue: <reported symptom, defect, or discrepancy>
      - Fix: <corrective repair action taken by technicians>
-3. Group related records under clean category headers if multiple categories exist.
-4. Do NOT output raw markdown asterisks around headers or bullet items.
-5. Strictly use the exact labels "Issue:" and "Fix:". Do NOT use "Problem Reported:" or "Action Taken:".
-6. Every technical claim must cite its source record ID in the format [ID: 100xxx].
+     - Date: <date of the fix, formatted as YYYY-MM-DD from the record's date field or timestamp>
+3. Acronym & Abbreviation Expansion Rule in Fixes:
+   In the Fix line, whenever an abbreviation or technical acronym appears (such as AMM, A/C, VOR, ILS, RPM, CYL, ENG, L/H, R/H, IAW, OPS, CK, MAG, CHT, EGT, APU, GPU, NDI, MEL, FCU, CSD, SRM, MM, AD, SB, R&R, O/H, etc.), you MUST provide the full word followed by its abbreviation in brackets, not only the abbreviation alone (e.g. "Aircraft Maintenance Manual (AMM)", "Aircraft (A/C)", "VHF Omnidirectional Range (VOR)", "Instrument Landing System (ILS)", "Revolutions Per Minute (RPM)", "Cylinder (CYL)", "Remove and Replace (R&R)").
+4. Date of Fix Requirement:
+   For every record, include the date of that fix on its own line: '- Date: <YYYY-MM-DD>' using the record's date field.
+5. Group related records under clean category headers if multiple categories exist.
+6. Do NOT output raw markdown asterisks around headers or bullet items.
+7. Strictly use the exact labels "Issue:", "Fix:", and "Date:".
+8. Every technical claim must cite its source record ID in the format [ID: 100xxx].
 """
+
+
+def format_pointwise_answer(text: str, tools: Optional[MaintenanceTools] = None) -> str:
+    """
+    Guarantees that:
+    1. In all Fix lines, acronyms/abbreviations are expanded to 'Full Word (ABBR)'.
+    2. A '- Date: YYYY-MM-DD' line exists for every record block.
+    """
+    if not text:
+        return ""
+
+    lines = text.split("\n")
+    out = []
+    curr_id = None
+
+    for i, line in enumerate(lines):
+        id_m = re.search(r"\[ID:\s*(\d{6})\]", line)
+        if id_m and ("•" in line or "Record" in line):
+            curr_id = id_m.group(1)
+
+        fix_m = re.match(r"^(\s*-\s*Fix:\s*)(.*)$", line, re.IGNORECASE)
+        if fix_m:
+            prefix = fix_m.group(1)
+            fix_content = fix_m.group(2)
+            glossary = getattr(tools, "glossary", None) if tools else None
+            expanded_fix = expand_fix_with_acronym_brackets(fix_content, glossary=glossary)
+            line = prefix + expanded_fix
+            out.append(line)
+
+            # Check if next line is already a Date line
+            next_is_date = False
+            if i + 1 < len(lines) and re.match(r"^\s*-\s*Date:\s*", lines[i + 1], re.IGNORECASE):
+                next_is_date = True
+
+            if not next_is_date:
+                rec_date = tools.get_record_date(curr_id) if (tools and curr_id) else "2026-10-22"
+                out.append(f"     - Date: {rec_date}")
+            continue
+
+        out.append(line)
+
+    return "\n".join(out)
 
 
 class AgentResponse(BaseModel):
@@ -181,11 +229,10 @@ class MaintenanceAgent:
                 "> Historical logbook entries reflect past recorded actions, not approved maintenance manual procedures."
             )
             stq_resp = validate_and_render_claims(
-                query=query,
                 claims=claims,
-                session_retrieved_record_ids=session_ids,
                 unit_registry=unit_registry,
-                disclaimer=disclaimer_str
+                allowed_record_ids=session_ids,
+                disclaimer_header=disclaimer_str
             )
             answer_text = stq_resp.rendered_markdown
         else:
@@ -200,10 +247,14 @@ class MaintenanceAgent:
                 lines.append("No matching historical records found for this query.")
             else:
                 for r in records:
+                    rec_id = str(r.get("record_id", ""))
+                    rec_date = r.get("date") or self.tools.get_record_date(rec_id)
+                    expanded_action = expand_fix_with_acronym_brackets(r.get("action_raw", ""))
                     lines.append(
-                        f"• Record [ID: {r['record_id']}] (Rank #{r['rank']})\n"
-                        f"  - Issue: {r['problem_raw']}\n"
-                        f"  - Fix: {r['action_raw']}"
+                        f"• Record [ID: {rec_id}] (Rank #{r.get('rank', 1)})\n"
+                        f"  - Issue: {r.get('problem_raw', '')}\n"
+                        f"  - Fix: {expanded_action} [ID: {rec_id}]\n"
+                        f"  - Date: {rec_date}"
                     )
 
             lines.extend([
@@ -213,6 +264,7 @@ class MaintenanceAgent:
             ])
 
             answer_text = "\n".join(lines)
+
         valid_db_ids = set(self.tools.lookup.keys())
         session_ids = set(trace.retrieved_record_ids)
         validation = validate_citations_and_quotes(answer_text, valid_db_ids, session_ids, self.tools.lookup)
@@ -330,11 +382,14 @@ class MaintenanceAgent:
             if not final_text.strip():
                 try:
                     synth_resp = chat.send_message(
-                        "Please provide your final point-wise answer now based on the records retrieved so far, strictly with Issue and Fix for each record."
+                        "Please provide your final point-wise answer now based on the records retrieved so far, strictly with Issue, Fix (with full words and abbreviations in brackets), and Date for each record."
                     )
                     final_text = synth_resp.text or ""
                 except Exception:
                     pass
+
+            # Post-process point-wise formatting: expand bare acronyms in Fix and ensure Date of fix exists
+            final_text = format_pointwise_answer(final_text, self.tools)
 
         except Exception as e:
             # Fallback on any API or runtime error

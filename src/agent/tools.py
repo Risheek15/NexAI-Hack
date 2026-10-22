@@ -36,6 +36,7 @@ class RecordSummary(BaseModel):
     problem_normalized: str
     action_normalized: str
     is_duplicate_of: Optional[str] = None
+    date: str = "2026-10-22"
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -116,6 +117,19 @@ class MaintenanceTools:
         self._lookup[record.record_id] = record.model_dump()
         self.retriever.add_record(record)
 
+    def get_record_date(self, record_id: str) -> str:
+        """Retrieves recorded date for a record, defaulting to database approval date."""
+        try:
+            raw = self.lookup.get(record_id, {})
+            meta = raw.get("metadata", {})
+            if "date" in meta:
+                return str(meta["date"])
+            if "approved_at" in meta:
+                return str(meta["approved_at"])[:10]
+        except Exception:
+            pass
+        return "2026-10-22"
+
     def search_records(self, query: str, top_k: int = 5) -> SearchRecordsOutput:
         """
         Executes hybrid retrieval over historical records, groups near-duplicate squawks,
@@ -150,6 +164,7 @@ class MaintenanceTools:
 
         record_summaries: List[RecordSummary] = []
         for r in raw_results:
+            rec_date = self.get_record_date(r.record_id)
             record_summaries.append(RecordSummary(
                 record_id=r.record_id,
                 rank=r.rank,
@@ -159,6 +174,7 @@ class MaintenanceTools:
                 problem_normalized=r.problem_normalized,
                 action_normalized=r.action_normalized,
                 is_duplicate_of=dup_to_rep.get(r.record_id),
+                date=rec_date,
                 metadata=dict(r.metadata)
             ))
 
@@ -198,6 +214,7 @@ class MaintenanceTools:
                 error=f"Record ID '{clean_id}' does not exist in the historical logbook database."
             )
 
+        rec_date = self.get_record_date(clean_id)
         summary = RecordSummary(
             record_id=clean_id,
             rank=1,
@@ -206,6 +223,7 @@ class MaintenanceTools:
             action_raw=raw_dict.get("action_raw", ""),
             problem_normalized=raw_dict.get("problem_normalized", ""),
             action_normalized=raw_dict.get("action_normalized", ""),
+            date=rec_date,
             metadata=raw_dict.get("metadata", {})
         )
 

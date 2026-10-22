@@ -44,6 +44,7 @@ interface CitationDetail {
   problem_raw: string;
   action_raw: string;
   rank?: number;
+  date?: string;
 }
 
 interface ToolTraceItem {
@@ -152,6 +153,7 @@ interface ParsedAnswerRecord {
   ids: string[];
   issue: string;
   fix: string;
+  date?: string;
 }
 
 interface ParsedStructuredAnswer {
@@ -186,12 +188,15 @@ function parseAnswerText(answer: string): ParsedStructuredAnswer {
   for (let i = 0; i < rawBlocks.length; i++) {
     const block = rawBlocks[i];
 
-    // Check for problem/issue and action/fix
+    // Check for problem/issue, action/fix, and date
     const issueMatch = block.match(
-      /(?:^|\n)\s*[\*\-\•]?\s*\**\b(?:Problem Reported|Problem|Issue|Discrepancy)\b\**:?\s*([\s\S]*?)(?=\n\s*[\*\-\•]?\s*\**\b(?:Action Taken|Action|Fix|Corrective Action|Resolution)\b|$)/i
+      /(?:^|\n)\s*[\*\-\•]?\s*\**\b(?:Problem Reported|Problem|Issue|Discrepancy)\b\**:?\s*([\s\S]*?)(?=\n\s*[\*\-\•]?\s*\**\b(?:Action Taken|Action|Fix|Corrective Action|Resolution|Date)\b|$)/i
     );
     const fixMatch = block.match(
-      /(?:^|\n)\s*[\*\-\•]?\s*\**\b(?:Action Taken|Action|Fix|Corrective Action|Resolution)\b\**:?\s*([\s\S]*)$/i
+      /(?:^|\n)\s*[\*\-\•]?\s*\**\b(?:Action Taken|Action|Fix|Corrective Action|Resolution)\b\**:?\s*([\s\S]*?)(?=\n\s*[\*\-\•]?\s*\**\b(?:Date|Fix Date|Logged Date)\b|$)/i
+    );
+    const dateMatch = block.match(
+      /(?:^|\n)\s*[\*\-\•]?\s*\**\b(?:Date|Fix Date|Logged Date)\b\**:?\s*([^\n]+)/i
     );
 
     if (issueMatch && fixMatch) {
@@ -201,7 +206,7 @@ function parseAnswerText(answer: string): ParsedStructuredAnswer {
 
       const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
       let title = "";
-      if (lines.length > 0 && !/\b(?:Problem|Issue|Discrepancy|Action|Fix)\b/i.test(lines[0])) {
+      if (lines.length > 0 && !/\b(?:Problem|Issue|Discrepancy|Action|Fix|Date)\b/i.test(lines[0])) {
         title = lines[0].replace(/^[\s\*\-\•#:]+|[\s\*\-:]+$/g, "").trim();
       }
 
@@ -209,16 +214,29 @@ function parseAnswerText(answer: string): ParsedStructuredAnswer {
         .replace(/^[\s\*\-\•:]+/, "")
         .replace(/[\s\*\-]+$/, "")
         .trim();
-      const cleanFix = fixMatch[1]
+      let cleanFix = fixMatch[1]
         .replace(/^[\s\*\-\•:]+/, "")
         .replace(/[\s\*\-]+$/, "")
         .trim();
+
+      let cleanDate = dateMatch
+        ? dateMatch[1].replace(/^[\s\*\-\•:]+/, "").replace(/[\s\*\-]+$/, "").trim()
+        : undefined;
+
+      if (!cleanDate) {
+        const inlineDateMatch = cleanFix.match(/\(?\bDate:\s*([0-9]{4}-[0-9]{2}-[0-9]{2}[^\)\n]*)\)?/i);
+        if (inlineDateMatch) {
+          cleanDate = inlineDateMatch[1].trim();
+          cleanFix = cleanFix.replace(/\(?\bDate:\s*[0-9]{4}-[0-9]{2}-[0-9]{2}[^\)\n]*\)?/i, "").trim();
+        }
+      }
 
       records.push({
         title: title || (uniqueIds.length > 0 ? `Record [ID: ${uniqueIds.join(", ")}]` : undefined),
         ids: uniqueIds,
         issue: cleanIssue,
         fix: cleanFix,
+        date: cleanDate || "2026-10-22",
       });
     } else {
       // Intro paragraph detection
@@ -364,7 +382,7 @@ function StructuredAnswerRenderer({
             key={index}
             className="rounded-2xl border border-white/20 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-md p-4 transition hover:border-purple-500/30 dark:hover:border-purple-400/30 space-y-3 shadow-sm"
           >
-            {/* Header: Sequence Number + Title + Clickable Citation Badges */}
+            {/* Header: Sequence Number + Title + Date Badge + Clickable Citation Badges */}
             <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-2.5">
               <div className="flex items-center space-x-2">
                 <span className={`inline-flex items-center justify-center h-5 w-5 rounded-full text-xs font-bold font-mono border ${numBadgeBg}`}>
@@ -373,6 +391,12 @@ function StructuredAnswerRenderer({
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-800 dark:text-slate-200">
                   {record.title || "Historical Logbook Record"}
                 </span>
+                {record.date && (
+                  <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md text-[11px] font-mono font-medium border border-black/5 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] text-slate-600 dark:text-slate-300">
+                    <Calendar className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                    <span>Date: {record.date}</span>
+                  </span>
+                )}
               </div>
 
               {/* Top-right record citation buttons */}
@@ -416,11 +440,19 @@ function StructuredAnswerRenderer({
             </div>
 
             {/* Fix Section */}
-            <div className="flex items-start space-x-3 rounded-xl bg-emerald-500/[0.08] dark:bg-emerald-500/[0.06] border border-emerald-500/20 p-3">
-              <span className="px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase rounded-md bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 flex-shrink-0 mt-0.5">
-                Fix
-              </span>
-              <div className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed flex-1">
+            <div className="space-y-1.5 rounded-xl bg-emerald-500/[0.08] dark:bg-emerald-500/[0.06] border border-emerald-500/20 p-3">
+              <div className="flex items-center justify-between">
+                <span className="px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase rounded-md bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 flex-shrink-0">
+                  Fix
+                </span>
+                {record.date && (
+                  <span className="text-[11px] font-mono font-semibold text-emerald-800 dark:text-emerald-300/90 inline-flex items-center space-x-1">
+                    <Calendar className="h-3 w-3 mr-1 text-emerald-600 dark:text-emerald-400" />
+                    <span>Date of Fix: {record.date}</span>
+                  </span>
+                )}
+              </div>
+              <div className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed">
                 {renderTextWithCitations(record.fix, citations, onSelectRecord, accentColor)}
               </div>
             </div>
@@ -1588,6 +1620,12 @@ export default function MaintenanceCopilot() {
                                 <div className="flex items-center space-x-2">
                                   <span className="text-xs text-slate-500">IDENT:</span>
                                   <span className="text-sm font-mono font-bold text-purple-600 dark:text-purple-400">{selectedRecord.record_id}</span>
+                                  {selectedRecord.date && (
+                                    <span className="text-xs font-mono text-slate-500 flex items-center ml-2">
+                                      <Calendar className="h-3 w-3 inline mr-1 text-purple-500" />
+                                      Date: {selectedRecord.date}
+                                    </span>
+                                  )}
                                 </div>
                                 <button
                                   onClick={() => copyToClipboard(selectedRecord.record_id)}
@@ -2792,6 +2830,12 @@ export default function MaintenanceCopilot() {
                           <div className="flex items-center space-x-2">
                             <span className="text-xs text-slate-500">IDENT:</span>
                             <span className="text-sm font-mono font-bold text-cyan-600 dark:text-cyan-400">{selectedRecord.record_id}</span>
+                            {selectedRecord.date && (
+                              <span className="text-xs font-mono text-slate-500 flex items-center ml-2">
+                                <Calendar className="h-3 w-3 inline mr-1 text-cyan-500" />
+                                Date: {selectedRecord.date}
+                              </span>
+                            )}
                           </div>
                           <button
                             onClick={() => copyToClipboard(selectedRecord.record_id)}

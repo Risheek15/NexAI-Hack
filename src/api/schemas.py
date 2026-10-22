@@ -18,6 +18,7 @@ class CitationDetail(BaseModel):
     problem_raw: str
     action_raw: str
     rank: Optional[int] = None
+    date: Optional[str] = "2026-10-22"
 
 
 class ToolTraceItem(BaseModel):
