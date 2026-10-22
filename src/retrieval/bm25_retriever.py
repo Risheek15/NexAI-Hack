@@ -81,6 +81,17 @@ class BM25Retriever:
                 "tokenized_corpus": self.tokenized_corpus
             }, f)
 
+    def add_record(self, record: LogbookRecord) -> None:
+        """Dynamically indexes a newly approved record into the BM25 model."""
+        if record.record_id in self.records_by_id:
+            return
+        self.records.append(record)
+        self.records_by_id[record.record_id] = record
+        self.record_ids.append(record.record_id)
+        tokens = tokenize(record.combined_normalized)
+        self.tokenized_corpus.append(tokens)
+        self.bm25 = BM25Okapi(self.tokenized_corpus)
+
     def search(self, query: str, top_k: int = 5) -> List[RetrievalResult]:
         """
         Executes BM25 search and returns ranked matching records.

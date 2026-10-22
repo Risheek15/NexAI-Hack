@@ -287,6 +287,18 @@
     "notes": "Context indicates alternator attach bolt / cooling hose",
     "source": "aviation-domain-curation"
   },
+  "AMM": {
+    "term": "AMM",
+    "expansion": "Aviation logbook acronym: AMM",
+    "status": "validated",
+    "context_examples": [
+      "[106177] NAV RECEIVER FAILED VOR/ILS TEST BENCH CHECK -> REMOVED AND REPLACED VOR/ILS RECEIVER PER AMM 34-31-00."
+    ],
+    "alternative_meanings": [],
+    "frequency": 1,
+    "notes": "Learned dynamically from approved logbook record #106177",
+    "source": "live-logbook-learning"
+  },
   "ANCHOR": {
     "term": "ANCHOR",
     "expansion": "UNKNOWN",
@@ -605,6 +617,18 @@
     "frequency": 5,
     "notes": "Candidate discovered from corpus frequency; awaiting human or LLM review.",
     "source": "auto-discovery"
+  },
+  "BENCH": {
+    "term": "BENCH",
+    "expansion": "Aviation logbook acronym: BENCH",
+    "status": "validated",
+    "context_examples": [
+      "[106177] NAV RECEIVER FAILED VOR/ILS TEST BENCH CHECK -> REMOVED AND REPLACED VOR/ILS RECEIVER PER AMM 34-31-00."
+    ],
+    "alternative_meanings": [],
+    "frequency": 1,
+    "notes": "Learned dynamically from approved logbook record #106177",
+    "source": "live-logbook-learning"
   },
   "BENT": {
     "term": "BENT",
@@ -3165,6 +3189,18 @@
     "notes": "Candidate discovered from corpus frequency; awaiting human or LLM review.",
     "source": "auto-discovery"
   },
+  "NAV": {
+    "term": "NAV",
+    "expansion": "Aviation logbook acronym: NAV",
+    "status": "validated",
+    "context_examples": [
+      "[106177] NAV RECEIVER FAILED VOR/ILS TEST BENCH CHECK -> REMOVED AND REPLACED VOR/ILS RECEIVER PER AMM 34-31-00."
+    ],
+    "alternative_meanings": [],
+    "frequency": 1,
+    "notes": "Learned dynamically from approved logbook record #106177",
+    "source": "live-logbook-learning"
+  },
   "NEAR": {
     "term": "NEAR",
     "expansion": "UNKNOWN",
@@ -5079,6 +5115,18 @@
     "frequency": 5,
     "notes": "Candidate discovered from corpus frequency; awaiting human or LLM review.",
     "source": "auto-discovery"
+  },
+  "VOR/ILS": {
+    "term": "VOR/ILS",
+    "expansion": "Aviation logbook acronym: VOR/ILS",
+    "status": "validated",
+    "context_examples": [
+      "[106177] NAV RECEIVER FAILED VOR/ILS TEST BENCH CHECK -> REMOVED AND REPLACED VOR/ILS RECEIVER PER AMM 34-31-00."
+    ],
+    "alternative_meanings": [],
+    "frequency": 1,
+    "notes": "Learned dynamically from approved logbook record #106177",
+    "source": "live-logbook-learning"
   },
   "W/IN": {
     "term": "W/IN",

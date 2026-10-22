@@ -108,6 +108,12 @@ class MaintenanceTools:
             self._retriever = HybridRetriever(records=records)
         return self._retriever
 
+    def add_record(self, record: LogbookRecord) -> None:
+        """Dynamically registers a newly approved record in the tool lookup and hybrid retriever."""
+        _ = self.lookup
+        self._lookup[record.record_id] = record.model_dump()
+        self.retriever.add_record(record)
+
     def search_records(self, query: str, top_k: int = 5) -> SearchRecordsOutput:
         """
         Executes hybrid retrieval over historical records, groups near-duplicate squawks,

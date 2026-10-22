@@ -33,6 +33,15 @@ class HybridRetriever:
         self.bm25 = bm25_retriever or BM25Retriever(records=records)
         self.semantic = semantic_retriever or SemanticRetriever(records=records)
 
+    def add_record(self, record: LogbookRecord) -> None:
+        """Dynamically indexes a newly approved record across BM25 and Semantic engines."""
+        if record.record_id in self.records_by_id:
+            return
+        self.records.append(record)
+        self.records_by_id[record.record_id] = record
+        self.bm25.add_record(record)
+        self.semantic.add_record(record)
+
     def search(self, query: str, top_k: int = 5) -> List[RetrievalResult]:
         """
         Executes BM25 and Semantic search, fuses rankings with RRF, and returns top_k results.
