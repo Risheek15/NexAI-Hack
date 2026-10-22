@@ -1,6 +1,6 @@
 # TASK N3: Aspect-Level Evidence Coverage Benchmark Report
 **Benchmark Split:** Development (N=20: 15 Answerable, 5 Unanswerable, Held-out Test Split Strictly Excluded)
-**Date:** 2026-10-22T09:04:31Z
+**Date:** 2026-10-22T09:38:09Z
 **Git Branch:** `experiment/aspect-gate`
 
 ## 1. Executive Summary & Hypothesis Validation
