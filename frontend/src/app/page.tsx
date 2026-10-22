@@ -97,7 +97,7 @@ export default function MaintenanceCopilot() {
   useEffect(() => {
     async function checkHealth() {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/health");
+        const res = await fetch("/api/health");
         if (res.ok) {
           const data = await res.json();
           setHealth(data);
@@ -113,7 +113,7 @@ export default function MaintenanceCopilot() {
   useEffect(() => {
     async function fetchGlossary() {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/glossary");
+        const res = await fetch("/api/glossary");
         if (res.ok) {
           const data = await res.json();
           setGlossary(data);
@@ -135,7 +135,7 @@ export default function MaintenanceCopilot() {
     setSelectedRecord(null);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/chat", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: q, top_k: 5 }),
