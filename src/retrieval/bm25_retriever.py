@@ -16,16 +16,68 @@ from src.retrieval.models import RetrievalResult
 
 _TOKEN_PATTERN = re.compile(r"[A-Za-z0-9#/'\-]+")
 
+_MORPHOLOGICAL_VARIANTS: Dict[str, List[str]] = {
+    "fouling": ["fouled", "foul"],
+    "fouled": ["fouling", "foul"],
+    "foul": ["fouled", "fouling"],
+    "spark-plug": ["spark", "plug", "sparkplug"],
+    "sparkplug": ["spark", "plug"],
+    "sparkplugs": ["spark", "plug", "plugs"],
+    "spark-plugs": ["spark", "plug", "plugs"],
+    "plugs": ["plug"],
+    "plug": ["plugs"],
+    "leaking": ["leak", "leaks", "leaked"],
+    "leaked": ["leak", "leaking", "leaks"],
+    "cracking": ["crack", "cracks", "cracked"],
+    "cracked": ["crack", "cracks", "cracking"],
+    "burning": ["burn", "burned"],
+    "burned": ["burn", "burning"],
+    "broken": ["break"],
+    "missing": ["miss"],
+    "failing": ["fail", "failed"],
+    "failed": ["fail", "failing"],
+    "vibrating": ["vibration", "vibrate"],
+    "cylinders": ["cyl", "cylinder"],
+    "cylinder": ["cyl", "cylinders"],
+}
+
 
 def tokenize(text: str) -> List[str]:
     """
     Tokenizes text into technical and alphanumeric tokens.
-    Requires at least one alphanumeric character per token so bare punctuation is ignored.
+    Handles hyphenated compound technical tokens (e.g. spark-plug -> spark, plug)
+    and expands morphological variants (e.g. fouling -> fouled, foul) for high-recall logbook matching.
     """
     if not text:
         return []
     raw_tokens = _TOKEN_PATTERN.findall(text)
-    return [t.lower() for t in raw_tokens if any(c.isalnum() for c in t)]
+    tokens: List[str] = []
+    seen = set()
+
+    for raw in raw_tokens:
+        tl = raw.lower()
+        if not any(c.isalnum() for c in tl):
+            continue
+
+        if tl not in seen:
+            seen.add(tl)
+            tokens.append(tl)
+
+        # Split hyphenated terms
+        if "-" in tl:
+            for sub in tl.split("-"):
+                if sub and any(c.isalnum() for c in sub) and sub not in seen:
+                    seen.add(sub)
+                    tokens.append(sub)
+
+        # Morphological synonyms & variants
+        if tl in _MORPHOLOGICAL_VARIANTS:
+            for v in _MORPHOLOGICAL_VARIANTS[tl]:
+                if v not in seen:
+                    seen.add(v)
+                    tokens.append(v)
+
+    return tokens
 
 
 class BM25Retriever:

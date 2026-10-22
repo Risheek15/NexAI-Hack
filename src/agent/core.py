@@ -63,6 +63,7 @@ Present your findings strictly point-wise, structured, and easy for an aircraft 
 6. Do NOT output raw markdown asterisks around headers or bullet items.
 7. Strictly use the exact labels "Issue:", "Fix:", and "Date:".
 8. Every technical claim must cite its source record ID in the format [ID: 100xxx].
+9. Tool Calling Optimization: When calling search_records, pass concise mechanical discrepancy terms (component + action/defect, e.g. 'CYL 2 plug fouled' or 'cylinder 2 spark plug' with top_k=8). If the user query has exclusion constraints (e.g., 'exclude CYL 12'), search for the positive target terms first, then enforce the negative exclusion in your analysis.
 """
 
 
@@ -313,7 +314,7 @@ class MaintenanceAgent:
                     "type": "OBJECT",
                     "properties": {
                         "query": {"type": "STRING", "description": "Maintenance symptom, discrepancy, or repair action."},
-                        "top_k": {"type": "INTEGER", "description": "Number of matching records to return (1-10)."}
+                        "top_k": {"type": "INTEGER", "description": "Number of matching records to return (1-15, default 8)."}
                     },
                     "required": ["query"]
                 }
@@ -407,25 +408,43 @@ class MaintenanceAgent:
         session_ids = set(trace.retrieved_record_ids) | set(trace.inspected_record_ids)
         validation = validate_citations_and_quotes(final_text, valid_db_ids, session_ids, self.tools.lookup)
 
-        # 4. Extract records from search trace
-        retrieved_records = []
-        evidence_status: EvidenceStatus = "sufficient"
-        evidence_reason = "Retrieved records corroborating historical incident."
+        # 4. Extract records and strictly align evidence status, reason, and counts with validated citations
+        cited_ids = validation.cited_ids
+        lower_ans = final_text.lower()
 
-        has_search = False
-        for tc in trace.tool_calls:
-            if tc.tool_name == "search_records":
-                has_search = True
-                retrieved_records = tc.output_data.get("records", [])
-                evidence_status = tc.output_data.get("evidence_status", "sufficient")
-                evidence_reason = tc.output_data.get("evidence_reason", "")
+        # Check if any tool call or model response detected ambiguity / clarification
+        is_clarification = any(tc.output_data.get("evidence_status") == "needs_clarification" for tc in trace.tool_calls) or any(w in lower_ans for w in ["clarify", "specify", "too generic", "which component"])
 
-        if not has_search:
-            # Deterministic evidence gate evaluation if model did not call search_records
-            gate_eval = self.tools.search_records(query=query, top_k=1)
-            evidence_status = gate_eval.evidence_status
-            evidence_reason = gate_eval.evidence_reason
-            retrieved_records = [r.model_dump() for r in gate_eval.records]
+        indicates_no_records = any(phrase in lower_ans for phrase in [
+            "no historical maintenance records",
+            "no records found",
+            "do not contain any entries",
+            "cannot support an answer",
+            "unavailable in the historical logbook",
+            "does not contain any entries",
+            "could not find any records",
+            "abstain"
+        ])
+
+        if is_clarification:
+            evidence_status: EvidenceStatus = "needs_clarification"
+            # Get reason from search tool if available
+            clarify_reason = next((tc.output_data.get("evidence_reason") for tc in trace.tool_calls if tc.output_data.get("evidence_status") == "needs_clarification"), None)
+            evidence_reason = clarify_reason or "The query lacks specific component context. Please clarify which component or cylinder is affected."
+            retrieved_records = []
+        elif len(cited_ids) == 0 or indicates_no_records:
+            evidence_status: EvidenceStatus = "insufficient"
+            evidence_reason = "No historical maintenance records found matching the requested discrepancy."
+            retrieved_records = []
+        else:
+            evidence_status = "sufficient"
+            count = len(cited_ids)
+            evidence_reason = f"Found {count} verified historical maintenance record{'s' if count > 1 else ''} matching the reported discrepancy."
+            retrieved_records = [
+                self.tools.lookup.get(cid, {})
+                for cid in cited_ids
+                if cid in self.tools.lookup
+            ]
 
         elapsed_total = (time.perf_counter() - start_time) * 1000
         trace.total_execution_time_ms = round(elapsed_total, 2)
@@ -435,7 +454,7 @@ class MaintenanceAgent:
             answer=validation.sanitized_answer or final_text,
             evidence_status=evidence_status,
             evidence_reason=evidence_reason,
-            cited_record_ids=validation.cited_ids,
+            cited_record_ids=cited_ids,
             retrieved_records=retrieved_records,
             trace=trace,
             citation_validation=validation,

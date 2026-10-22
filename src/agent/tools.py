@@ -1,3 +1,4 @@
+import re
 """
 Application tools for the Maintenance Copilot agent:
 1. search_records(query, top_k): Hybrid retrieval, duplicate clustering, deterministic evidence gating.
@@ -16,7 +17,7 @@ from src.agent.evidence_gate import assess_retrieval_evidence, EvidenceStatus
 
 class SearchRecordsInput(BaseModel):
     query: str = Field(..., description="The maintenance discrepancy, squawk, symptom, or repair action to search for")
-    top_k: int = Field(default=5, ge=1, le=20, description="Maximum number of ranked matching records to return (1-20)")
+    top_k: int = Field(default=8, ge=1, le=20, description="Maximum number of ranked matching records to return (1-20)")
 
     @field_validator("query")
     @classmethod
@@ -130,7 +131,7 @@ class MaintenanceTools:
             pass
         return "2026-10-22"
 
-    def search_records(self, query: str, top_k: int = 5) -> SearchRecordsOutput:
+    def search_records(self, query: str, top_k: int = 8) -> SearchRecordsOutput:
         """
         Executes hybrid retrieval over historical records, groups near-duplicate squawks,
         and provides deterministic evidence assessment.
@@ -149,8 +150,26 @@ class MaintenanceTools:
                 duplicate_clusters={}
             )
 
+        # Clean conversational filler and negative exclusion instructions from search query
+        clean_search_query = validated.query
+        if len(clean_search_query.split()) > 6:
+            prefix_pattern = re.compile(
+                r"^(?:find|search|show|get|retrieve|look\s+for|list)\s+(?:all\s+)?(?:historical\s+)?(?:maintenance\s+)?(?:records\s+)?(?:specifically\s+)?(?:mentioning|regarding|about|for|with)\s+",
+                re.IGNORECASE
+            )
+            clean_search_query = prefix_pattern.sub("", clean_search_query).strip()
+            exclude_match = re.search(r"\b(?:exclude|do\s+not\s+include)\s+records.*", clean_search_query, re.IGNORECASE)
+            if exclude_match:
+                clean_search_query = clean_search_query[:exclude_match.start()].strip()
+            return_match = re.search(r"\breturn\s+(?:the\s+)?(?:record\s+id|original\s+problem|recorded\s+action).*", clean_search_query, re.IGNORECASE)
+            if return_match:
+                clean_search_query = clean_search_query[:return_match.start()].strip()
+
+        if not clean_search_query.strip():
+            clean_search_query = validated.query
+
         # Execute hybrid retrieval
-        raw_results = self.retriever.search(validated.query, top_k=validated.top_k)
+        raw_results = self.retriever.search(clean_search_query, top_k=validated.top_k)
 
         # Run evidence assessment and duplicate clustering
         assessment, deduped_results, clusters = assess_retrieval_evidence(validated.query, raw_results)

@@ -76,7 +76,7 @@ _SYMPTOM_PATTERNS = [
     re.compile(r"\b(cracked?|cracks?)\b", re.IGNORECASE),
     re.compile(r"\b(lose|loose|loosen?)\b", re.IGNORECASE),
     re.compile(r"\b(stck|stuck)\b", re.IGNORECASE),
-    re.compile(r"\b(fouled?|foul)\b", re.IGNORECASE),
+    re.compile(r"\b(fouling|fouled?|foul)\b", re.IGNORECASE),
     re.compile(r"\b(fire|burning|burned)\b", re.IGNORECASE),
     re.compile(r"\b(unlock|unlocks|unlocked)\b", re.IGNORECASE),
     re.compile(r"\b(broken|choke|choked|inop|inoperative|vibration)\b", re.IGNORECASE)
@@ -84,6 +84,7 @@ _SYMPTOM_PATTERNS = [
 
 # Known aviation component sub-strings
 _COMPONENT_KEYWORD_PATTERNS = [
+    re.compile(r"\b(spark[\s-]*plugs?|sparkplug|lower\s+plug|top\s+plug|plugs?)\b", re.IGNORECASE),
     re.compile(r"\b(autopilot\s+altitude\s+hold(?:\s+and\s+pitch\s+trim)?|autopilot)\b", re.IGNORECASE),
     re.compile(r"\b(cabin\s+oxygen\s+mask|oxygen\s+mask)\b", re.IGNORECASE),
     re.compile(r"\b(landing\s+gear\s+hydraulic\s+retraction\s+actuator|landing\s+gear)\b", re.IGNORECASE),

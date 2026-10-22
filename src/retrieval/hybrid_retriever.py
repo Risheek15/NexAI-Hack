@@ -50,7 +50,7 @@ class HybridRetriever:
             return []
 
         # Pull larger candidate pool for fusion
-        candidate_pool_size = max(50, top_k * 3)
+        candidate_pool_size = max(60, top_k * 5)
 
         bm25_results = self.bm25.search(query, top_k=candidate_pool_size)
         semantic_results = self.semantic.search(query, top_k=candidate_pool_size)
